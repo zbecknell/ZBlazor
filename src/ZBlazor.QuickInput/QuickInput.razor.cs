@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,8 +21,6 @@ namespace ZBlazor.QuickInput
         readonly FuzzyMatcher _fuzzyMatcher = new FuzzyMatcher();
 
         List<SearchItem<TItem>> SearchItems = new List<SearchItem<TItem>>();
-
-        [Inject] ILogger Log { get; set; } = null!;
 
         #endregion FIELDS
 
@@ -114,12 +112,10 @@ namespace ZBlazor.QuickInput
         {
             var currentCycleDataCount = Data?.Count() ?? 0;
 
-            Log.LogTrace("QuickInput rendering with {CurrentCycleDataCount} items.", currentCycleDataCount);
+            Debug.WriteLine("QuickInput rendering with {0} items.", currentCycleDataCount);
 
             if (previousCycleDataCount != currentCycleDataCount)
             {
-                Log.LogTrace("Data changed: {@Data}", Data);
-
                 InitializeSearchItems();
 
                 previousCycleDataCount = currentCycleDataCount;
@@ -163,7 +159,7 @@ namespace ZBlazor.QuickInput
 
             if (ClearAfterSelection)
             {
-                Log.LogTrace("Clearing input value after selection");
+                Debug.WriteLine("Clearing input value after selection");
                 InputValue = "";
             }
 
@@ -269,7 +265,7 @@ namespace ZBlazor.QuickInput
         {
             if (Data == null)
             {
-                Log.LogDebug("InitializeSearchItems: Data null, clearing any existing SearchItems.");
+                Debug.WriteLine("InitializeSearchItems: Data null, clearing any existing SearchItems.");
                 SearchItems.Clear();
                 return;
             }
@@ -288,7 +284,7 @@ namespace ZBlazor.QuickInput
                 SearchItems = Data.Where(i => i != null).Select(i => new SearchItem<TItem> { Text = i?.GetType()?.GetProperty(TextField)?.GetValue(i, null)?.ToString() ?? "", DataObject = i }).ToList();
             }
 
-            Log.LogDebug("Initialized {Count} SearchItems", SearchItems.Count);
+            Debug.WriteLine("Initialized {0} SearchItems", SearchItems.Count);
 
             Calculate();
         }

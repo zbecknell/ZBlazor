@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Extensions.Logging;
-using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using UI;
 
@@ -18,20 +16,11 @@ namespace BlazorWasm
 				.MinimumLevel.Verbose()
 				.CreateLogger();
 
-			Serilog.Debugging.SelfLog.Enable(message => Console.WriteLine(message));
+			Serilog.Debugging.SelfLog.Enable(message => Debug.WriteLine(message));
 
 			var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 			builder.RootComponents.Add<App>("app");
-
-			builder.Services.AddLogging(logBuilder =>
-			{
-				logBuilder.AddSerilog().SetMinimumLevel(LogLevel.Trace);
-
-				logBuilder.Services.AddSingleton<SerilogLoggerProvider>();
-
-				logBuilder.Services.Add(ServiceDescriptor.Singleton(typeof(Microsoft.Extensions.Logging.ILogger), typeof(SerilogLogger)));
-			});
 
 			builder.Services.AddBaseAddressHttpClient();
 

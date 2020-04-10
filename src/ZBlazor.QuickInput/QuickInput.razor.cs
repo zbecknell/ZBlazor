@@ -205,7 +205,7 @@ namespace ZBlazor.QuickInput
                     {
                         isOpen = !isOpen;
                     }
-                    else
+                    else if (ClearOnEscape)
                     {
                         ClearInputValue();
                     }

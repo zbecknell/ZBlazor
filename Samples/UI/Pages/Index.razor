@@ -4,7 +4,7 @@
 
 <div>
     <QuickInput placeholder="Enter a country"
-                  Data="TestData.CountryNames"
+                  Data="countries"
                   Class="form-control"
                   MaxItemsToShow="maxItemsToShow"
                   TItem="string"
@@ -111,6 +111,8 @@
 
     string[] iconNames = Enum.GetNames(typeof(IconName));
 
+    string[] countries;
+
     Rating[] Ratings = new []
     {
         new Rating("Very good", 5),
@@ -119,6 +121,15 @@
         new Rating("Poor", 2),
         new Rating("Very poor", 1)
     };
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            countries = TestData.CountryNames;
+            StateHasChanged();
+        }
+    }
 
     void OnItemSelected(string text)
     {

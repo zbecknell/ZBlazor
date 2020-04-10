@@ -19,7 +19,7 @@ namespace ZBlazor.QuickInput
 
         readonly FuzzyMatcher _fuzzyMatcher = new FuzzyMatcher();
 
-        List<SearchItem<TItem>> SearchItems = null!;
+        List<SearchItem<TItem>> SearchItems = new List<SearchItem<TItem>>();
 
         #endregion FIELDS
 
@@ -100,12 +100,20 @@ namespace ZBlazor.QuickInput
 
         #region LIFECYCLE
 
-        protected override void OnInitialized()
-        {
-            InitializeSearchItems(Data);
+        int previousCycleDataCount = 0;
 
-            Calculate();
-            base.OnInitialized();
+        protected override void OnAfterRender(bool firstRender)
+        {
+            var currentCycleDataCount = Data?.Count() ?? 0;
+
+            if(previousCycleDataCount != currentCycleDataCount)
+            {
+                InitializeSearchItems();
+
+                previousCycleDataCount = currentCycleDataCount;
+            }
+
+            base.OnAfterRender(firstRender);
         }
 
         protected override void OnParametersSet()
@@ -239,11 +247,17 @@ namespace ZBlazor.QuickInput
             }
         }
 
-        void InitializeSearchItems(IEnumerable<TItem> items)
+        void InitializeSearchItems()
         {
+            if (Data == null)
+            {
+                SearchItems.Clear();
+                return;
+            }
+
             if (typeof(TItem) == typeof(string))
             {
-                SearchItems = items.Where(i => i != null).Select(i => new SearchItem<TItem> { Text = (i as string)!, DataObject = i }).ToList();
+                SearchItems = Data.Where(i => i != null).Select(i => new SearchItem<TItem> { Text = (i as string)!, DataObject = i }).ToList();
             }
             else
             {
@@ -252,8 +266,10 @@ namespace ZBlazor.QuickInput
                     throw new ArgumentNullException(nameof(TextField));
                 }
 
-                SearchItems = items.Where(i => i != null).Select(i => new SearchItem<TItem> { Text = i?.GetType()?.GetProperty(TextField)?.GetValue(i, null)?.ToString() ?? "", DataObject = i }).ToList();
+                SearchItems = Data.Where(i => i != null).Select(i => new SearchItem<TItem> { Text = i?.GetType()?.GetProperty(TextField)?.GetValue(i, null)?.ToString() ?? "", DataObject = i }).ToList();
             }
+
+            Calculate();
         }
 
         void ClearInputValue()

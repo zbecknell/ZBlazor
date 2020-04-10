@@ -238,6 +238,11 @@ namespace ZBlazor.QuickInput
         void OnMouseDown(MouseEventArgs args)
         {
             isMouseDown = true;
+
+            if (isFocused && OpenOnFocus && !hasInputValue && !isOpen)
+            {
+                isOpen = true;
+            }
         }
 
         void OnMouseUp(MouseEventArgs args)

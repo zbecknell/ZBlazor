@@ -89,6 +89,11 @@ namespace ZBlazor.QuickInput
         [Parameter] public bool ClearAfterSelection { get; set; } = false;
 
         /// <summary>
+        /// When populated, the matcher will also check other named fields on <see cref="TItem" /> for a filter match.
+        /// </summary>
+        [Parameter] public IEnumerable<string>? OtherMatchFields { get; set; }
+
+        /// <summary>
         /// Occurs when the user selects a value from the list.
         /// </summary>
         [Parameter] public EventCallback<TItem> OnItemSelected { get; set; }
@@ -159,8 +164,7 @@ namespace ZBlazor.QuickInput
 
             if (ClearAfterSelection)
             {
-                Debug.WriteLine("Clearing input value after selection");
-                InputValue = "";
+                ClearInputValue();
             }
 
             isOpen = false;
@@ -263,6 +267,38 @@ namespace ZBlazor.QuickInput
                 var match = _fuzzyMatcher.Match(InputValue ?? "", item.Text);
                 item.Matches = match.Matches;
                 item.Score = match.Score;
+
+                if (OtherMatchFields != null && OtherMatchFields.Count() > 0)
+                {
+                    var itemType = item?.DataObject?.GetType();
+
+                    if (itemType == null)
+                    {
+                        break;
+                    }
+
+                    foreach (var otherField in OtherMatchFields)
+                    {
+                        Debug.WriteLine($"Searching OtherMatchFields field {otherField}");
+
+                        var otherFieldValue = itemType.GetProperty(otherField)?.GetValue(item!.DataObject)?.ToString();
+
+                        if (string.IsNullOrWhiteSpace(otherFieldValue))
+                        {
+                            continue;
+                        }
+
+                        var otherMatch = _fuzzyMatcher.Match(InputValue ?? "", otherFieldValue);
+
+                        if (otherMatch != null && otherMatch.Score > item!.Score)
+                        {
+                            item.Score = otherMatch.Score;
+                            item.Matches = otherMatch.Matches;
+                            item.OtherMatchFieldName = otherField;
+                            item.OtherMatchFieldValue = otherFieldValue;
+                        }
+                    }
+                }
             }
         }
 

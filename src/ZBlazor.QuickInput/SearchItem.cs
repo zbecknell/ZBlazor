@@ -17,11 +17,26 @@ namespace ZBlazor.QuickInput
 				return (MarkupString)Text;
 			}
 
+			if (OtherMatchFieldName != null && OtherMatchFieldValue != null)
+			{
+				var result = new System.Text.StringBuilder();
+				result.Append(Text);
+				result.Append($"<br/><small>Matches {OtherMatchFieldName}: {GetMatchesMarkup(Matches, OtherMatchFieldValue)}</small>");
+				return (MarkupString)result.ToString();
+			}
+			else
+			{
+				return (MarkupString)GetMatchesMarkup(Matches, Text);
+			}
+		}
+
+		private string GetMatchesMarkup(List<FilterMatch> matches, string value)
+		{
 			var result = new System.Text.StringBuilder();
 
 			var position = 0;
 
-			foreach (var match in Matches)
+			foreach (var match in matches)
 			{
 				if (match.End == match.Start)
 				{
@@ -32,28 +47,28 @@ namespace ZBlazor.QuickInput
 				{
 					result.Append("<span>");
 
-					var outerSubstring = Text[position..match.Start];
+					var outerSubstring = value[position..match.Start];
 					result.Append(outerSubstring);
 					result.Append("</span>");
 					position = match.End;
 				}
 
 				result.Append("<strong>");
-				var innerSubstring = Text[match.Start..match.End];
+				var innerSubstring = value[match.Start..match.End];
 				result.Append(innerSubstring);
 				result.Append("</strong>");
 				position = match.End;
 			}
 
-			if (position < Text.Length)
+			if (position < value.Length)
 			{
 				result.Append("<span>");
-				var endSubstring = Text.Substring(position);
+				var endSubstring = value.Substring(position);
 				result.Append(endSubstring);
 				result.Append("</span>");
 			}
 
-			return (MarkupString)result.ToString();
+			return result.ToString();
 		}
 
 		public string Text { get; set; } = "";
@@ -63,6 +78,16 @@ namespace ZBlazor.QuickInput
 		public int? ShowingIndex { get; set; }
 		public bool IsSelected = false;
 		public bool ShouldItemShow = false;
+
+		/// <summary>
+		/// Populated when the match is against another field other than the primary.
+		/// </summary>
+		public string? OtherMatchFieldName { get; set; }
+
+		/// <summary>
+		/// Populated when the match is against another field other than the primary.
+		/// </summary>
+		public string? OtherMatchFieldValue { get; set; }
 
 		public TDataObject DataObject { get; set; } = default!;
 	}

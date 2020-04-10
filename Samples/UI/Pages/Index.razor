@@ -41,16 +41,17 @@
                 Data="Ratings"
                 Class="form-control"
                 MaxItemsToShow="maxItemsToShow"
-                TItem="Rating"
+                TItem="RatingItem"
                 OnItemSelected="OnRatingSelected"
                 HighlightMatches="highlightMatches"
                 SelectFirstMatch="selectFirstMatch"
                 ShowClearButton="showClearButton"
                 OpenOnFocus="openOnFocus"
                 ClearOnEscape="clearOnEscape"
-                ClearAfterSelection="clearAfterSelection">
+                ClearAfterSelection="clearAfterSelection"
+                OtherMatchFields="@(new[] { "Rating" })">
         <ItemTemplate>
-            <strong>Rating:</strong> @context.GetDisplayText() <small>@context.DataObject.Value</small>
+            <strong>Rating:</strong> @context.GetDisplayText()
         </ItemTemplate>
     </QuickInput>
 </div>
@@ -123,13 +124,13 @@
 
     string[] countries = null!;
 
-    Rating[] Ratings = new []
+    RatingItem[] Ratings = new []
     {
-        new Rating("Very good", 5),
-        new Rating("Good", 4),
-        new Rating("Fair", 3),
-        new Rating("Poor", 2),
-        new Rating("Very poor", 1)
+        new RatingItem("Very good", 5),
+        new RatingItem("Good", 4),
+        new RatingItem("Fair", 3),
+        new RatingItem("Poor", 2),
+        new RatingItem("Very poor", 1)
     };
 
     protected override void OnAfterRender(bool firstRender)
@@ -146,20 +147,20 @@
         selectedItems.Add(text);
     }
 
-    void OnRatingSelected(Rating rating)
+    void OnRatingSelected(RatingItem rating)
     {
         selectedItems.Add(rating.Text);
     }
 
-    class Rating
+    class RatingItem
     {
-        public Rating(string text, int value)
+        public RatingItem(string text, int rating)
         {
             Text = text;
-            Value = value;
+            Rating = rating;
         }
 
         public string Text { get; set; } = null!;
-        public int Value { get; set; }
+        public int Rating { get; set; }
     }
 }

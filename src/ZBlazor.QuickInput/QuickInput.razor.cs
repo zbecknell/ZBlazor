@@ -264,6 +264,8 @@ namespace ZBlazor.QuickInput
 
             foreach (var item in SearchItems)
             {
+                ClearItem(item);
+
                 var match = _fuzzyMatcher.Match(InputValue ?? "", item.Text);
                 item.Matches = match.Matches;
                 item.Score = match.Score;
@@ -300,6 +302,14 @@ namespace ZBlazor.QuickInput
                     }
                 }
             }
+        }
+
+        private void ClearItem(SearchItem<TItem> item)
+        {
+            item.Matches = null;
+            item.Score = -100;
+            item.OtherMatchFieldName = null;
+            item.OtherMatchFieldValue = null;
         }
 
         void InitializeSearchItems()

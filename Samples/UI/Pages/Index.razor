@@ -1,19 +1,22 @@
 ﻿@page "/"
+@using Microsoft.Extensions.Logging
+@inject ILogger Logger
 
 <h3>QuickInput</h3>
 
 <div>
     <QuickInput placeholder="Enter a country"
-                  Data="countries"
-                  Class="form-control"
-                  MaxItemsToShow="maxItemsToShow"
-                  TItem="string"
-                  OnItemSelected="OnItemSelected"
-                  HighlightMatches="highlightMatches"
-                  SelectFirstMatch="selectFirstMatch"
-                  ShowClearButton="showClearButton"
-                  OpenOnFocus="openOnFocus"
-                  ClearOnEscape="clearOnEscape">
+                Data="countries"
+                Class="form-control"
+                MaxItemsToShow="maxItemsToShow"
+                TItem="string"
+                OnItemSelected="OnItemSelected"
+                HighlightMatches="highlightMatches"
+                SelectFirstMatch="selectFirstMatch"
+                ShowClearButton="showClearButton"
+                OpenOnFocus="openOnFocus"
+                ClearOnEscape="clearOnEscape"
+                ClearAfterSelection="clearAfterSelection">
         <ItemTemplate>
             <strong>Country:</strong> @context.GetDisplayText()
         </ItemTemplate>
@@ -22,30 +25,32 @@
 
 <div>
     <QuickInput placeholder="Enter an icon name"
-                  Data="iconNames"
-                  Class="form-control"
-                  MaxItemsToShow="maxItemsToShow"
-                  TItem="string"
-                  OnItemSelected="OnItemSelected"
-                  HighlightMatches="highlightMatches"
-                  SelectFirstMatch="selectFirstMatch"
-                  ShowClearButton="showClearButton"
-                  OpenOnFocus="openOnFocus"
-                  ClearOnEscape="clearOnEscape" />
+                Data="iconNames"
+                Class="form-control"
+                MaxItemsToShow="maxItemsToShow"
+                TItem="string"
+                OnItemSelected="OnItemSelected"
+                HighlightMatches="highlightMatches"
+                SelectFirstMatch="selectFirstMatch"
+                ShowClearButton="showClearButton"
+                OpenOnFocus="openOnFocus"
+                ClearOnEscape="clearOnEscape"
+                ClearAfterSelection="clearAfterSelection"/>
 </div>
 
 <div>
     <QuickInput placeholder="Enter a rating"
-                  Data="Ratings"
-                  Class="form-control"
-                  MaxItemsToShow="maxItemsToShow"
-                  TItem="Rating"
-                  OnItemSelected="OnRatingSelected"
-                  HighlightMatches="highlightMatches"
-                  SelectFirstMatch="selectFirstMatch"
-                  ShowClearButton="showClearButton"
-                  OpenOnFocus="openOnFocus"
-                  ClearOnEscape="clearOnEscape">
+                Data="Ratings"
+                Class="form-control"
+                MaxItemsToShow="maxItemsToShow"
+                TItem="Rating"
+                OnItemSelected="OnRatingSelected"
+                HighlightMatches="highlightMatches"
+                SelectFirstMatch="selectFirstMatch"
+                ShowClearButton="showClearButton"
+                OpenOnFocus="openOnFocus"
+                ClearOnEscape="clearOnEscape"
+                ClearAfterSelection="clearAfterSelection">
         <ItemTemplate>
             <strong>Rating:</strong> @context.GetDisplayText() <small>@context.DataObject.Value</small>
         </ItemTemplate>
@@ -86,6 +91,12 @@
         Clear on escape
     </label>
 </div>
+<div class="form-check">
+    <label class="form-check-label">
+        <input class="form-check-input" type="checkbox" @bind="clearAfterSelection">
+        Clear after selection
+    </label>
+</div>
 
 <form class="form-inline" style="margin-bottom: 20px;">
     <div class="form-group">
@@ -106,12 +117,13 @@
     bool clearOnEscape = true;
     int maxItemsToShow = 5;
     bool showClearButton = true;
+    bool clearAfterSelection = true;
 
     List<string> selectedItems = new List<string>();
 
     string[] iconNames = Enum.GetNames(typeof(IconName));
 
-    string[] countries;
+    string[] countries = null!;
 
     Rating[] Ratings = new []
     {
@@ -126,6 +138,7 @@
     {
         if (firstRender)
         {
+            Logger.LogDebug("Index: first render");
             countries = TestData.CountryNames;
             StateHasChanged();
         }
@@ -138,7 +151,7 @@
 
     void OnRatingSelected(Rating rating)
     {
-        Log.Information("Rating selected: {@Rating}", rating);
+        Logger.LogInformation("Rating selected: {@Rating}", rating);
         selectedItems.Add(rating.Text);
     }
 

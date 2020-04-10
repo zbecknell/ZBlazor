@@ -8,5 +8,7 @@ artifacts:
 - path: artifacts/ZBlazor.QuickInput.*.nupkg
 deploy:
 - provider: NuGet
+  api_key:
+    secure: 3+5T+2Z10TlETuXd44nQ/I3+8L4dVYOmit62NY7kwm7kyGrUG0W3gf00zAo6hBXz
   on:
     branch: /^(master|dev)$/

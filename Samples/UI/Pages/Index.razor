@@ -33,7 +33,7 @@
                 ShowClearButton="showClearButton"
                 OpenOnFocus="openOnFocus"
                 ClearOnEscape="clearOnEscape"
-                ClearAfterSelection="clearAfterSelection"/>
+                ClearAfterSelection="clearAfterSelection" />
 </div>
 
 <div>
@@ -49,9 +49,10 @@
                 OpenOnFocus="openOnFocus"
                 ClearOnEscape="clearOnEscape"
                 ClearAfterSelection="clearAfterSelection"
-                OtherMatchFields="@(new[] { "Rating" })">
+                OtherMatchFields="@(new[] { "Rating" })"
+                ShowOtherMatches="true">
         <ItemTemplate>
-            <strong>Rating:</strong> @context.GetDisplayText()
+            <strong>Rating:</strong> @context.GetDisplayText(showOtherMatches: showOtherMatches)
         </ItemTemplate>
     </QuickInput>
 </div>
@@ -96,6 +97,12 @@
         Clear after selection
     </label>
 </div>
+<div class="form-check">
+    <label class="form-check-label">
+        <input class="form-check-input" type="checkbox" @bind="showOtherMatches">
+        Show other matches
+    </label>
+</div>
 
 <form class="form-inline" style="margin-bottom: 20px;">
     <div class="form-group">
@@ -117,6 +124,7 @@
     int maxItemsToShow = 5;
     bool showClearButton = true;
     bool clearAfterSelection = true;
+    bool showOtherMatches = true;
 
     List<string> selectedItems = new List<string>();
 

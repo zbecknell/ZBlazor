@@ -7,27 +7,25 @@ namespace ZBlazor.QuickInput
 	{
 		public MarkupString GetDisplayText(bool highlightMatches = true, bool showOtherMatches = true)
 		{
-			if (!highlightMatches)
+			if (!highlightMatches || Matches == null || string.IsNullOrWhiteSpace(Text))
 			{
-				return (MarkupString)Text;
+				return (MarkupString)$"<span class\"zb-quick-input-filter-match\">{Text}</span>";
 			}
 
-			if (Matches == null || string.IsNullOrWhiteSpace(Text))
+			if (highlightMatches && Matches != null && OtherMatchFieldValue == null && OtherMatchFieldValue == null)
 			{
-				return (MarkupString)Text;
+				return (MarkupString)$"<span class\"zb-quick-input-filter-match\">{GetMatchesMarkup(Matches, Text)}</span>";
 			}
 
-			if (showOtherMatches && OtherMatchFieldName != null && OtherMatchFieldValue != null)
+			if (highlightMatches && showOtherMatches && Matches != null && OtherMatchFieldName != null && OtherMatchFieldValue != null)
 			{
 				var result = new System.Text.StringBuilder();
 				result.Append(Text);
-				result.Append($"<br/><small>Matches {OtherMatchFieldName}: {GetMatchesMarkup(Matches, OtherMatchFieldValue)}</small>");
+				result.Append($"<span class=\"zb-quick-input-filter-match\"><br/><small>Matches {OtherMatchFieldName}: {GetMatchesMarkup(Matches, OtherMatchFieldValue)}</small></span>");
 				return (MarkupString)result.ToString();
 			}
-			else
-			{
-				return (MarkupString)GetMatchesMarkup(Matches, Text);
-			}
+
+			return (MarkupString)$"<span class\"zb-quick-input-filter-match\">{Text}</span>";
 		}
 
 		private string GetMatchesMarkup(List<FilterMatch> matches, string value)
@@ -35,8 +33,6 @@ namespace ZBlazor.QuickInput
 			var result = new System.Text.StringBuilder();
 
 			var position = 0;
-
-			result.Append("<span class=\"zb-quick-input-filter-match\">");
 
 			foreach (var match in matches)
 			{
@@ -69,8 +65,6 @@ namespace ZBlazor.QuickInput
 				result.Append(endSubstring);
 				result.Append("</span>");
 			}
-
-			result.Append("</span>");
 
 			return result.ToString();
 		}

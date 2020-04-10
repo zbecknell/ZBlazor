@@ -94,6 +94,11 @@ namespace ZBlazor.QuickInput
         [Parameter] public IEnumerable<string>? OtherMatchFields { get; set; }
 
         /// <summary>
+        /// When true, shows the name and value of the "other match" fields when matched. Defaults to true. Note that if you use an ItemTemplate you need to pass a value for GetDisplayText if you don't want other matches to show.
+        /// </summary>
+        [Parameter] public bool ShowOtherMatches { get; set; } = true;
+
+        /// <summary>
         /// Occurs when the user selects a value from the list.
         /// </summary>
         [Parameter] public EventCallback<TItem> OnItemSelected { get; set; }

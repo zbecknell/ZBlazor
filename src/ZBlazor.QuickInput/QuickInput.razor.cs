@@ -99,6 +99,11 @@ namespace ZBlazor.QuickInput
         [Parameter] public RenderFragment? InputAccessory { get; set; }
 
         /// <summary>
+        /// When populated, will display when no matches are found for an input value.
+        /// </summary>
+        [Parameter] public RenderFragment? NoResultsView { get; set; }
+
+        /// <summary>
         /// When populated, the matcher will also check other named fields on <see cref="TItem" /> for a filter match.
         /// </summary>
         [Parameter] public IEnumerable<string>? OtherMatchFields { get; set; }

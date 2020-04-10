@@ -94,6 +94,11 @@ namespace ZBlazor.QuickInput
         [Parameter] public bool ClearAfterSelection { get; set; } = false;
 
         /// <summary>
+        /// When populated, a span will be present after each item element that can be used for an icon.
+        /// </summary>
+        [Parameter] public string? LeftIconClass { get; set; }
+
+        /// <summary>
         /// When populated, the matcher will also check other named fields on <see cref="TItem" /> for a filter match.
         /// </summary>
         [Parameter] public IEnumerable<string>? OtherMatchFields { get; set; }

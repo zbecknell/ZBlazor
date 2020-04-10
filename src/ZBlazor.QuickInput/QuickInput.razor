@@ -51,7 +51,7 @@
                 }
 
                 <div @key="item.Text"
-                     class="@(item.IsSelected ? "zb-quick-input-active" : "")"
+                     class="@($"zb-quick-input-item {(item.IsSelected ? "zb-quick-input-active" : "")}")"
                      @onclick="@(async () => await OnSelected(item))">
                     @if (ItemTemplate != null)
                     {
@@ -62,6 +62,11 @@
                         @item.GetDisplayText(HighlightMatches, ShowOtherMatches)
                     }
                 </div>
+
+                @if (LeftIconClass != null)
+                {
+                    <span class="@LeftIconClass"></span>
+                }
             }
 
         </div>

@@ -5,7 +5,7 @@ namespace ZBlazor.QuickInput
 {
 	public class SearchItem<TDataObject>
 	{
-		public MarkupString GetDisplayText(bool highlightMatches = true)
+		public MarkupString GetDisplayText(bool highlightMatches = true, bool showOtherMatches = true)
 		{
 			if (!highlightMatches)
 			{
@@ -17,7 +17,7 @@ namespace ZBlazor.QuickInput
 				return (MarkupString)Text;
 			}
 
-			if (OtherMatchFieldName != null && OtherMatchFieldValue != null)
+			if (showOtherMatches && OtherMatchFieldName != null && OtherMatchFieldValue != null)
 			{
 				var result = new System.Text.StringBuilder();
 				result.Append(Text);
@@ -35,6 +35,8 @@ namespace ZBlazor.QuickInput
 			var result = new System.Text.StringBuilder();
 
 			var position = 0;
+
+			result.Append("<span class=\"zb-quick-input-filter-match\">");
 
 			foreach (var match in matches)
 			{
@@ -67,6 +69,8 @@ namespace ZBlazor.QuickInput
 				result.Append(endSubstring);
 				result.Append("</span>");
 			}
+
+			result.Append("</span>");
 
 			return result.ToString();
 		}

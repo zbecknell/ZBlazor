@@ -22,7 +22,7 @@ namespace ZBlazor.QuickInput
 
         List<SearchItem<TItem>> SearchItems = new List<SearchItem<TItem>>();
 
-        [Inject] ILogger<QuickInput<TItem>> Log { get; set; } = null!;
+        [Inject] ILogger Log { get; set; } = null!;
 
         #endregion FIELDS
 
@@ -86,6 +86,11 @@ namespace ZBlazor.QuickInput
         [Parameter] public bool ShowClearButton { get; set; } = true;
 
         /// <summary>
+        /// When true, the input in cleared when a value is selected. Defaults to false.
+        /// </summary>
+        [Parameter] public bool ClearAfterSelection { get; set; } = false;
+
+        /// <summary>
         /// Occurs when the user selects a value from the list.
         /// </summary>
         [Parameter] public EventCallback<TItem> OnItemSelected { get; set; }
@@ -109,8 +114,12 @@ namespace ZBlazor.QuickInput
         {
             var currentCycleDataCount = Data?.Count() ?? 0;
 
-            if(previousCycleDataCount != currentCycleDataCount)
+            Log.LogTrace("QuickInput rendering with {CurrentCycleDataCount} items.", currentCycleDataCount);
+
+            if (previousCycleDataCount != currentCycleDataCount)
             {
+                Log.LogTrace("Data changed: {@Data}", Data);
+
                 InitializeSearchItems();
 
                 previousCycleDataCount = currentCycleDataCount;
@@ -150,6 +159,12 @@ namespace ZBlazor.QuickInput
             if (OnItemSelected.HasDelegate)
             {
                 await OnItemSelected.InvokeAsync(item.DataObject);
+            }
+
+            if (ClearAfterSelection)
+            {
+                Log.LogTrace("Clearing input value after selection");
+                InputValue = "";
             }
 
             isOpen = false;
@@ -272,6 +287,8 @@ namespace ZBlazor.QuickInput
 
                 SearchItems = Data.Where(i => i != null).Select(i => new SearchItem<TItem> { Text = i?.GetType()?.GetProperty(TextField)?.GetValue(i, null)?.ToString() ?? "", DataObject = i }).ToList();
             }
+
+            Log.LogDebug("Initialized {Count} SearchItems", SearchItems.Count);
 
             Calculate();
         }

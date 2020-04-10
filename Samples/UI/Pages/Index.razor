@@ -1,6 +1,4 @@
 ﻿@page "/"
-@using Microsoft.Extensions.Logging
-@inject ILogger Logger
 
 <h3>QuickInput</h3>
 
@@ -138,7 +136,6 @@
     {
         if (firstRender)
         {
-            Logger.LogDebug("Index: first render");
             countries = TestData.CountryNames;
             StateHasChanged();
         }
@@ -151,7 +148,6 @@
 
     void OnRatingSelected(Rating rating)
     {
-        Logger.LogInformation("Rating selected: {@Rating}", rating);
         selectedItems.Add(rating.Text);
     }
 

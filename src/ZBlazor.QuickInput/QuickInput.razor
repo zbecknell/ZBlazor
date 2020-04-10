@@ -1,5 +1,5 @@
 ﻿@typeparam TItem
-<div class="@($"zb-quick-input-container {ContainerClass}")"
+<div class="@($"zb-quick-input-container {ContainerClass} ")"
      style="@($"width:{Width};")">
     <input type="text"
            value="@InputValue"
@@ -26,40 +26,44 @@
             <span class="zb-quick-input-close-symbol">&times;</span>
         </span>
     }
-    <div class="zb-quick-input-items"
+    <div class="@($"zb-quick-input-items {(isOpen ? " zb-quick-input-items-open" :"")}")"
+         style="@($"{(MaxItemsHeight != null ? $"style: {MaxItemsHeight}" : "")}")"
          @onmousedown="OnMouseDown"
          @onmouseup="OnMouseUp">
+        <div class="zb-quick-input-items-scrollable">
 
-        @{ int showingIndex = 0; }
+            @{ int showingIndex = 0; }
 
-        @foreach (var item in SearchItems.OrderByDescending(i => i.Score))
-        {
+            @foreach (var item in SearchItems.OrderByDescending(i => i.Score))
             {
-                if (item.IsMatch || isOpen)
                 {
-                    item.IsSelected = showingIndex == selectedItemIndex;
-                    showingIndex += 1;
-                }
-                item.ShouldItemShow = ShouldItemShow(item.IsMatch, showingIndex);
+                    if (item.IsMatch || isOpen)
+                    {
+                        item.IsSelected = showingIndex == selectedItemIndex;
+                        showingIndex += 1;
+                    }
+                    item.ShouldItemShow = ShouldItemShow(item.IsMatch, showingIndex);
 
-                if (!item.ShouldItemShow)
-                {
-                    continue;
+                    if (!item.ShouldItemShow)
+                    {
+                        continue;
+                    }
                 }
+
+                <div @key="item.Text"
+                     class="@(item.IsSelected ? "zb-quick-input-active" : "")"
+                     @onclick="@(async () => await OnSelected(item))">
+                    @if (ItemTemplate != null)
+                    {
+                        @ItemTemplate(item)
+                    }
+                    else
+                    {
+                        @item.GetDisplayText(HighlightMatches, ShowOtherMatches)
+                    }
+                </div>
             }
 
-            <div @key="item.Text"
-                 class="@(item.IsSelected ? "zb-quick-input-active" : "")"
-                 @onclick="@(async () => await OnSelected(item))">
-                @if(ItemTemplate != null)
-                {
-                    @ItemTemplate(item)
-                }
-                else
-                {
-                    @item.GetDisplayText(HighlightMatches, ShowOtherMatches)
-                }
-            </div>
-        }
+        </div>
     </div>
 </div>

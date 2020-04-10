@@ -69,6 +69,11 @@ namespace ZBlazor.QuickInput
         [Parameter] public int MaxItemsToShow { get; set; } = 5;
 
         /// <summary>
+        /// Maximum height for the items container.
+        /// </summary>
+        [Parameter] public string? MaxItemsHeight { get; set; }
+
+        /// <summary>
         /// When true, highlights matches in the list. Defaults to true.
         /// </summary>
         [Parameter] public bool HighlightMatches { get; set; } = true;

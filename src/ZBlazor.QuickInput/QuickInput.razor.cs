@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,8 @@ namespace ZBlazor.QuickInput
         readonly FuzzyMatcher _fuzzyMatcher = new FuzzyMatcher();
 
         List<SearchItem<TItem>> SearchItems = new List<SearchItem<TItem>>();
+
+        [Inject] ILogger<QuickInput<TItem>> Log { get; set; } = null!;
 
         #endregion FIELDS
 
@@ -251,6 +254,7 @@ namespace ZBlazor.QuickInput
         {
             if (Data == null)
             {
+                Log.LogDebug("InitializeSearchItems: Data null, clearing any existing SearchItems.");
                 SearchItems.Clear();
                 return;
             }

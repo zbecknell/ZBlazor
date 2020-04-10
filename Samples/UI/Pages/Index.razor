@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using Microsoft.Extensions.Logging
+@inject ILogger<Index> Logger
 
 <h3>QuickInput</h3>
 
@@ -126,6 +128,7 @@
     {
         if (firstRender)
         {
+            Logger.LogDebug("Index: first render");
             countries = TestData.CountryNames;
             StateHasChanged();
         }

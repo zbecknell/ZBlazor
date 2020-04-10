@@ -94,9 +94,9 @@ namespace ZBlazor.QuickInput
         [Parameter] public bool ClearAfterSelection { get; set; } = false;
 
         /// <summary>
-        /// When populated, a span will be present after each item element that can be used for an icon.
+        /// When present, will be placed next to (after) the input. For things like icon overlays.
         /// </summary>
-        [Parameter] public string? LeftIconClass { get; set; }
+        [Parameter] public RenderFragment? InputAccessory { get; set; }
 
         /// <summary>
         /// When populated, the matcher will also check other named fields on <see cref="TItem" /> for a filter match.

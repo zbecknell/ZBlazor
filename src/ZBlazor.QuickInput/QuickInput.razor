@@ -11,6 +11,10 @@
            @onblur="OnBlur"
            @onmousedown="OnMouseDown"
            @onmouseup="OnMouseUp">
+    @if (InputAccessory != null)
+    {
+        @InputAccessory
+    }
     @if (ShowClearButton)
     {
         <span class="zb-quick-input-clear-button"
@@ -62,11 +66,6 @@
                         @item.GetDisplayText(HighlightMatches, ShowOtherMatches)
                     }
                 </div>
-
-                @if (LeftIconClass != null)
-                {
-                    <span class="@LeftIconClass"></span>
-                }
             }
 
         </div>

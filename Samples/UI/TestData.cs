@@ -7,6 +7,7 @@
         /// </summary>
         public static string[] CountryNames = new string[]
         {
+            null,
             "Afghanistan",
             "Albania",
             "Algeria",

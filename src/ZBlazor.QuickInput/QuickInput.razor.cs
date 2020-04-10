@@ -243,7 +243,7 @@ namespace ZBlazor.QuickInput
         {
             if (typeof(TItem) == typeof(string))
             {
-                SearchItems = items.Select(i => new SearchItem<TItem> { Text = (i as string)!, DataObject = i }).ToList();
+                SearchItems = items.Where(i => i != null).Select(i => new SearchItem<TItem> { Text = (i as string)!, DataObject = i }).ToList();
             }
             else
             {
@@ -252,7 +252,7 @@ namespace ZBlazor.QuickInput
                     throw new ArgumentNullException(nameof(TextField));
                 }
 
-                SearchItems = items.Select(i => new SearchItem<TItem> { Text = i?.GetType()?.GetProperty(TextField)?.GetValue(i, null)?.ToString() ?? "", DataObject = i }).ToList();
+                SearchItems = items.Where(i => i != null).Select(i => new SearchItem<TItem> { Text = i?.GetType()?.GetProperty(TextField)?.GetValue(i, null)?.ToString() ?? "", DataObject = i }).ToList();
             }
         }
 

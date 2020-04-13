@@ -3,25 +3,6 @@
 <h3>QuickInput</h3>
 
 <div>
-    <QuickInput placeholder="Enter a country"
-                Data="countries"
-                Class="form-control"
-                MaxItemsToShow="maxItemsToShow"
-                TItem="string"
-                OnItemSelected="OnItemSelected"
-                HighlightMatches="highlightMatches"
-                SelectFirstMatch="selectFirstMatch"
-                ShowClearButton="showClearButton"
-                OpenOnFocus="openOnFocus"
-                ClearOnEscape="clearOnEscape"
-                ClearAfterSelection="clearAfterSelection">
-        <ItemTemplate>
-            <strong>Country:</strong> @context.GetDisplayText()
-        </ItemTemplate>
-    </QuickInput>
-</div>
-
-<div>
     <QuickInput placeholder="Enter an icon name"
                 Data="iconNames"
                 Class="form-control"
@@ -33,7 +14,8 @@
                 ShowClearButton="showClearButton"
                 OpenOnFocus="openOnFocus"
                 ClearOnEscape="clearOnEscape"
-                ClearAfterSelection="clearAfterSelection" />
+                ClearAfterSelection="clearAfterSelection"
+                AllowCustomValues="allowCustomInputValue" />
 </div>
 
 <div>
@@ -50,7 +32,8 @@
                 ClearOnEscape="clearOnEscape"
                 ClearAfterSelection="clearAfterSelection"
                 OtherMatchFields="@(new[] { "Rating" })"
-                ShowOtherMatches="true">
+                ShowOtherMatches="true"
+                AllowCustomValues="allowCustomInputValue">
         <ItemTemplate>
             <strong>Rating:</strong> @context.GetDisplayText(showOtherMatches: showOtherMatches)
         </ItemTemplate>
@@ -104,6 +87,12 @@
         Show other matches
     </label>
 </div>
+<div class="form-check">
+    <label class="form-check-label">
+        <input class="form-check-input" type="checkbox" @bind="allowCustomInputValue">
+        Allow custom input value
+    </label>
+</div>
 
 <form class="form-inline" style="margin-bottom: 20px;">
     <div class="form-group">
@@ -126,8 +115,9 @@
     bool showClearButton = true;
     bool clearAfterSelection = true;
     bool showOtherMatches = true;
+    bool allowCustomInputValue = true;
 
-    List<string> selectedItems = new List<string>();
+    List<string?> selectedItems = new List<string?>();
 
     string[] iconNames = Enum.GetNames(typeof(IconName));
 
@@ -156,9 +146,9 @@
         selectedItems.Add(text);
     }
 
-    void OnRatingSelected(RatingItem rating)
+    void OnRatingSelected(RatingItem? rating)
     {
-        selectedItems.Add(rating.Text);
+        selectedItems.Add(rating?.Text);
     }
 
     class RatingItem

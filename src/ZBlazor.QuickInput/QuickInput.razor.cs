@@ -23,6 +23,8 @@ namespace ZBlazor.QuickInput
 
         List<SearchItem<TItem>> SearchItems = new List<SearchItem<TItem>>();
 
+        SearchItem<TItem>? lastSelectedItem = null;
+
         #endregion FIELDS
 
         #region PARAMETERS
@@ -117,12 +119,17 @@ namespace ZBlazor.QuickInput
         /// <summary>
         /// Occurs when the user selects a value from the list.
         /// </summary>
-        [Parameter] public EventCallback<TItem> OnItemSelected { get; set; }
+        [Parameter] public EventCallback<TItem?> OnItemSelected { get; set; }
 
         /// <summary>
         /// When other (non-primary) fields match, sort primary matches to the top always. Defaults to false.
         /// </summary>
         [Parameter] public bool PrioritizePrimaryMatch { get; set; } = false;
+
+        /// <summary>
+        /// When true, input not matching any search item is allowed, otherwise input is cleared when not matching any search items. Defaults to true.
+        /// </summary>
+        [Parameter] public bool AllowCustomValues { get; set; } = true;
 
         /// <summary>
         /// The type of the input element. Defaults to 'text'.
@@ -153,8 +160,7 @@ namespace ZBlazor.QuickInput
         {
             var currentCycleDataCount = Data?.Count() ?? 0;
 
-            Debug.WriteLine("QuickInput rendering with {0} items.", currentCycleDataCount);
-
+            // TODO: this has a bug if the data were to be replaced with a different set with the same number of items
             if (previousCycleDataCount != currentCycleDataCount)
             {
                 InitializeSearchItems();
@@ -189,13 +195,14 @@ namespace ZBlazor.QuickInput
             Calculate();
         }
 
-        async Task OnSelected(SearchItem<TItem> item)
+        async Task OnSelected(SearchItem<TItem>? item)
         {
-            InputValue = item.Text;
+            lastSelectedItem = item;
+            InputValue = item?.Text ?? "";
 
             if (OnItemSelected.HasDelegate)
             {
-                await OnItemSelected.InvokeAsync(item.DataObject);
+                await OnItemSelected.InvokeAsync(item?.DataObject);
             }
 
             if (ClearAfterSelection)
@@ -226,6 +233,22 @@ namespace ZBlazor.QuickInput
             if (!isMouseDown)
             {
                 isOpen = false;
+
+                if (!AllowCustomValues && SearchItems.All(i => i.Text != InputValue) && !ClearAfterSelection)
+                {
+                    if (string.IsNullOrWhiteSpace(InputValue))
+                    {
+                        if (lastSelectedItem != null)
+                        {
+                            InputValue = lastSelectedItem.Text;
+                            await OnSelected(lastSelectedItem);
+                        }
+                    }
+                    else
+                    {
+                        InputValue = lastSelectedItem?.Text;
+                    }
+                }
             }
 
             isFocused = false;
@@ -393,6 +416,7 @@ namespace ZBlazor.QuickInput
 
         void ClearInputValue()
         {
+            lastSelectedItem = null;
             InputValue = "";
 
             if (isFocused)

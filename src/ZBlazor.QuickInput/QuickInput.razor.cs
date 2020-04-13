@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace ZBlazor.QuickInput
 {
     public partial class QuickInput<TItem> : ComponentBase
+        where TItem : class
     {
         #region FIELDS
 
@@ -127,6 +128,11 @@ namespace ZBlazor.QuickInput
         /// Occurs when the user changes the value inside the input.
         /// </summary>
         [Parameter] public EventCallback<string> OnInputValueChanged { get; set; }
+
+        /// <summary>
+        /// When true, a null value will be passed to <see cref="OnInputValueChanged"/>. Defaults to true.
+        /// </summary>
+        [Parameter] public bool EmitNullOnInputClear { get; set; } = true;
 
         [Parameter] public RenderFragment<SearchItem<TItem>>? ItemTemplate { get; set; }
 
@@ -384,6 +390,11 @@ namespace ZBlazor.QuickInput
             {
                 // Go ahead and close down if we don't open just for focus
                 isOpen = OpenOnFocus;
+            }
+
+            if (OnItemSelected.HasDelegate)
+            {
+                OnItemSelected.InvokeAsync(null!);
             }
 
             Calculate();

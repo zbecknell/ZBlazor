@@ -13,10 +13,14 @@
         font-size: 1.3em;
         height: 1.3em;
         line-height: 1.3em;
-        right: 0.6em;
+        right: 0.2em;
         top: 0.2em;
         cursor: pointer;
         color: darkgrey;
+    }
+
+    .zb-quick-input-container .zb-quick-input-clear-button .zb-quick-input-clear-symbol {
+        padding: 5px 10px;
     }
 
     .zb-quick-input-container input[type=text]:focus + .zb-quick-input-clear-button,

@@ -202,6 +202,10 @@ namespace ZBlazor.QuickInput
             {
                 ClearInputValue();
             }
+            else
+            {
+                Calculate();
+            }
 
             isOpen = false;
         }

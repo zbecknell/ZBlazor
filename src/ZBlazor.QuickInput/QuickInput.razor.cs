@@ -399,7 +399,15 @@ namespace ZBlazor.QuickInput
                 }
             }
 
-            return ordered.ThenByDescending(i => i.Score).ToList();
+            if (PrioritizePrimaryMatch || PrioritizeShorterValues)
+            {
+                return ordered.ThenByDescending(i => i.Score).ToList();
+            }
+            else
+            {
+                return SearchItems.OrderByDescending(i => i.Score).ToList();
+            }
+
         }
 
         private void ClearItem(SearchItem<TItem> item)

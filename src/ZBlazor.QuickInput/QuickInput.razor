@@ -63,6 +63,10 @@
                             showingIndex += 1;
                         } else
                         {
+                            if (item.IsSelected)
+                            {
+                                item.IsSelected = false;
+                            }
                             continue;
                         }
                     }

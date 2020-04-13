@@ -234,14 +234,17 @@ namespace ZBlazor.QuickInput
             {
                 isOpen = false;
 
-                if (!AllowCustomValues && SearchItems.All(i => i.Text != InputValue) && !ClearAfterSelection)
+                Debug.WriteLine($"OnBlur InputValue: {InputValue}");
+
+                if (!AllowCustomValues &&
+                    (string.IsNullOrWhiteSpace(InputValue) || SearchItems.All(i => i.Text != InputValue)))
                 {
                     if (string.IsNullOrWhiteSpace(InputValue))
                     {
                         if (lastSelectedItem != null)
                         {
-                            InputValue = lastSelectedItem.Text;
-                            await OnSelected(lastSelectedItem);
+                            await OnSelected(null);
+                            Calculate();
                         }
                     }
                     else

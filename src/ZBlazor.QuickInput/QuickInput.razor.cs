@@ -125,12 +125,17 @@ namespace ZBlazor.QuickInput
         [Parameter] public bool PrioritizePrimaryMatch { get; set; } = false;
 
         /// <summary>
+        /// The type of the input element. Defaults to 'text'.
+        /// </summary>
+        [Parameter] public string InputType { get; set; } = "text";
+
+        /// <summary>
         /// Occurs when the user changes the value inside the input.
         /// </summary>
         [Parameter] public EventCallback<string> OnInputValueChanged { get; set; }
 
         /// <summary>
-        /// When true, a null value will be passed to <see cref="OnInputValueChanged"/>. Defaults to true.
+        /// When true, a null value will be passed to <see cref="OnItemSelected"/>. Defaults to true.
         /// </summary>
         [Parameter] public bool EmitNullOnInputClear { get; set; } = true;
 

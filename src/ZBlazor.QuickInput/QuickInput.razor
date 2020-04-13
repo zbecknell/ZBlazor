@@ -1,7 +1,7 @@
 ﻿@typeparam TItem
 <div class="@($"zb-quick-input-container {ContainerClass} ")"
      style="@($"width:{Width};")">
-    <input type="text"
+    <input type="@InputType"
            value="@InputValue"
            class="@Class"
            @attributes="InputAttributes"

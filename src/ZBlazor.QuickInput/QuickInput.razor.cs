@@ -119,6 +119,11 @@ namespace ZBlazor.QuickInput
         [Parameter] public EventCallback<TItem> OnItemSelected { get; set; }
 
         /// <summary>
+        /// When other (non-primary) fields match, sort primary matches to the top always. Defaults to false.
+        /// </summary>
+        [Parameter] public bool PrioritizePrimaryMatch { get; set; } = false;
+
+        /// <summary>
         /// Occurs when the user changes the value inside the input.
         /// </summary>
         [Parameter] public EventCallback<string> OnInputValueChanged { get; set; }
@@ -322,6 +327,17 @@ namespace ZBlazor.QuickInput
                     }
                 }
             }
+        }
+
+        private List<SearchItem<TItem>> GetOrderedSearchItems()
+        {
+            if (PrioritizePrimaryMatch)
+            {
+                return SearchItems.OrderByDescending(i => i.IsPrimaryMatch)
+                    .ThenByDescending(i => i.Score).ToList();
+            }
+
+            return SearchItems.OrderByDescending(i => i.Score).ToList();
         }
 
         private void ClearItem(SearchItem<TItem> item)

@@ -52,7 +52,7 @@
             {
                 int showingIndex = 0;
 
-                foreach (var item in SearchItems.OrderByDescending(i => i.Score))
+                foreach (var item in GetOrderedSearchItems())
                 {
                     {
                         if (item.IsMatch || isOpen)
@@ -68,9 +68,9 @@
                         }
                     }
 
-                    <div @key="item.Text"
-                        class="@($"zb-quick-input-item {(item.IsSelected ? "zb-quick-input-active" : "")}")"
-                        @onclick="@(async () => await OnSelected(item))">
+                    <div @key="item.Key"
+                         class="@($"zb-quick-input-item {(item.IsSelected ? "zb-quick-input-active" : "")}")"
+                         @onclick="@(async () => await OnSelected(item))">
                         @if (ItemTemplate != null)
                         {
                             @ItemTemplate(item)

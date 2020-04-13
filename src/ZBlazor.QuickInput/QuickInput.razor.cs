@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -120,6 +121,11 @@ namespace ZBlazor.QuickInput
         /// Occurs when the user selects a value from the list.
         /// </summary>
         [Parameter] public EventCallback<TItem?> OnItemSelected { get; set; }
+
+        /// <summary>
+        /// When true, results will be ordered with shorter values first. Takes precedence above <see cref="PrioritizePrimaryMatch"/>. Defaults to false.
+        /// </summary>
+        [Parameter] public bool PrioritizeShorterValues { get; set; } = false;
 
         /// <summary>
         /// When other (non-primary) fields match, sort primary matches to the top always. Defaults to false.
@@ -372,13 +378,28 @@ namespace ZBlazor.QuickInput
 
         private List<SearchItem<TItem>> GetOrderedSearchItems()
         {
-            if (PrioritizePrimaryMatch)
+            IOrderedEnumerable<SearchItem<TItem>> ordered = null!;
+
+            if (PrioritizeShorterValues)
             {
-                return SearchItems.OrderByDescending(i => i.IsPrimaryMatch)
-                    .ThenByDescending(i => i.Score).ToList();
+                ordered = SearchItems.OrderBy(i => i.Text.Length);
             }
 
-            return SearchItems.OrderByDescending(i => i.Score).ToList();
+            if (PrioritizePrimaryMatch)
+            {
+                if (PrioritizeShorterValues)
+                {
+                    ordered = ordered
+                        .ThenByDescending(i => i.IsPrimaryMatch);
+                }
+                else
+                {
+                    ordered = SearchItems
+                        .OrderByDescending(i => i.IsPrimaryMatch);
+                }
+            }
+
+            return ordered.ThenByDescending(i => i.Score).ToList();
         }
 
         private void ClearItem(SearchItem<TItem> item)

@@ -376,7 +376,7 @@ namespace ZBlazor.QuickInput
             }
         }
 
-        private List<SearchItem<TItem>> GetOrderedSearchItems()
+        protected virtual List<SearchItem<TItem>> GetOrderedSearchItems()
         {
             if (!hasInputValue)
             {

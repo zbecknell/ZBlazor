@@ -55,14 +55,13 @@
                 foreach (var item in GetOrderedSearchItems())
                 {
                     {
-                        if (item.IsMatch || isOpen)
+                        item.ShouldItemShow = ShouldItemShow(item.IsMatch, showingIndex + 1);
+
+                        if (item.ShouldItemShow)
                         {
                             item.IsSelected = showingIndex == selectedItemIndex;
                             showingIndex += 1;
-                        }
-                        item.ShouldItemShow = ShouldItemShow(item.IsMatch, showingIndex);
-
-                        if (!item.ShouldItemShow)
+                        } else
                         {
                             continue;
                         }

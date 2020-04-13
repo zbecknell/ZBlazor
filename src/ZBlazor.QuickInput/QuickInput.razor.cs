@@ -378,6 +378,11 @@ namespace ZBlazor.QuickInput
 
         private List<SearchItem<TItem>> GetOrderedSearchItems()
         {
+            if (!hasInputValue)
+            {
+                return SearchItems;
+            }
+
             IOrderedEnumerable<SearchItem<TItem>> ordered = null!;
 
             if (PrioritizeShorterValues)

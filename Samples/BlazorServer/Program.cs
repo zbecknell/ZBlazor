@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace BlazorServer
 {
@@ -7,6 +8,11 @@ namespace BlazorServer
 	{
 		public static void Main(string[] args)
 		{
+			Log.Logger = new LoggerConfiguration()
+				.WriteTo.Console(Serilog.Events.LogEventLevel.Debug)
+				.MinimumLevel.Debug()
+				.CreateLogger();
+
 			CreateHostBuilder(args).Build().Run();
 		}
 
@@ -14,7 +20,8 @@ namespace BlazorServer
 			Host.CreateDefaultBuilder(args)
 				.ConfigureWebHostDefaults(webBuilder =>
 				{
-					webBuilder.UseStartup<Startup>();
+					webBuilder
+						.UseStartup<Startup>();
 				});
 	}
 }

@@ -1,4 +1,5 @@
-﻿@typeparam TItem
+﻿@namespace ZBlazor
+@typeparam TItem
 <div class="@($"zb-quick-input-container {ContainerClass} ")"
      style="@($"width:{Width};")">
     <input type="@InputType"
@@ -52,27 +53,29 @@
             {
                 int showingIndex = 0;
 
+                foreach (var item in SearchItems.Where(i => i.IsSelected))
+                {
+                    item.IsSelected = false;
+                }
+
                 foreach (var item in GetOrderedSearchItems())
                 {
                     {
-                        item.ShouldItemShow = ShouldItemShow(item.IsMatch, showingIndex + 1);
+                        item.ShouldItemShow = ShouldItemShow(item.IsMatch, showingIndex);
 
                         if (item.ShouldItemShow)
                         {
                             item.IsSelected = showingIndex == selectedItemIndex;
                             showingIndex += 1;
-                        } else
+                        }
+                        else
                         {
-                            if (item.IsSelected)
-                            {
-                                item.IsSelected = false;
-                            }
                             continue;
                         }
                     }
 
                     <div @key="item.Key"
-                         class="@($"zb-quick-input-item {(item.IsSelected ? "zb-quick-input-active" : "")}")"
+                         class="@($"zb-quick-input-item {(item.IsSelected ? "zb-quick-input-active" : "")}  {(item.LastHit != null ? "zb-quick-input-item-recent" : "")}")"
                          @onclick="@(async () => await OnSelected(item))">
                         @if (ItemTemplate != null)
                         {

@@ -15,31 +15,34 @@
                 OpenOnFocus="openOnFocus"
                 ClearOnEscape="clearOnEscape"
                 ClearAfterSelection="clearAfterSelection"
+                RecentRepository="@(new InMemoryRecentRepository("IconPicker"))"
                 AllowCustomValues="allowCustomInputValue" />
 </div>
 
-<div>
-    <QuickInput placeholder="Enter a rating"
-                Data="Ratings"
-                Class="form-control"
-                MaxItemsToShow="maxItemsToShow"
-                TItem="RatingItem"
-                OnItemSelected="OnRatingSelected"
-                HighlightMatches="highlightMatches"
-                SelectFirstMatch="selectFirstMatch"
-                ShowClearButton="showClearButton"
-                OpenOnFocus="openOnFocus"
-                ClearOnEscape="clearOnEscape"
-                ClearAfterSelection="clearAfterSelection"
-                OtherMatchFields="@(new[] { "Rating" })"
-                ShowOtherMatches="true"
-                AllowCustomValues="allowCustomInputValue">
-        <ItemTemplate>
-            <strong>Rating:</strong> @context.GetDisplayText(showOtherMatches: showOtherMatches)
-        </ItemTemplate>
-        <NoResultsView>Nothing to see here!</NoResultsView>
-    </QuickInput>
-</div>
+@*
+    <div>
+        <QuickInput placeholder="Enter a rating"
+                    Data="Ratings"
+                    Class="form-control"
+                    MaxItemsToShow="maxItemsToShow"
+                    TItem="RatingItem"
+                    OnItemSelected="OnRatingSelected"
+                    HighlightMatches="highlightMatches"
+                    SelectFirstMatch="selectFirstMatch"
+                    ShowClearButton="showClearButton"
+                    OpenOnFocus="openOnFocus"
+                    ClearOnEscape="clearOnEscape"
+                    ClearAfterSelection="clearAfterSelection"
+                    OtherMatchFields="@(new[] { "Rating" })"
+                    ShowOtherMatches="true"
+                    AllowCustomValues="allowCustomInputValue">
+            <ItemTemplate>
+                <strong>Rating:</strong> @context.GetDisplayText(showOtherMatches: showOtherMatches)
+            </ItemTemplate>
+            <NoResultsView>Nothing to see here!</NoResultsView>
+        </QuickInput>
+    </div>
+*@
 
 <hr />
 

@@ -6,8 +6,9 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using ZBlazor.QuickInput;
 
-namespace ZBlazor.QuickInput
+namespace ZBlazor
 {
     public partial class QuickInput<TItem> : ComponentBase
         where TItem : class
@@ -152,6 +153,16 @@ namespace ZBlazor.QuickInput
         /// </summary>
         [Parameter] public bool EmitNullOnInputClear { get; set; } = true;
 
+        /// <summary>
+        /// The repository to use for holding recent selected records. When populated, recents will be used, otherwise recent functionality will be disabled. Requires the <see cref="KeyField"/> to be populated with a valid unique key for <see cref="TItem"/>.
+        /// </summary>
+        [Parameter] public IRecentRepository? RecentRepository { get; set; }
+
+        /// <summary>
+        /// When present, is the field containing a unique key for the <see cref="TItem"/>.
+        /// </summary>
+        [Parameter] public string? KeyField { get; set; }
+
         [Parameter] public RenderFragment<SearchItem<TItem>>? ItemTemplate { get; set; }
 
         [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> InputAttributes { get; set; } = new Dictionary<string, object>();
@@ -162,19 +173,19 @@ namespace ZBlazor.QuickInput
 
         int previousCycleDataCount = 0;
 
-        protected override void OnAfterRender(bool firstRender)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             var currentCycleDataCount = Data?.Count() ?? 0;
 
             // TODO: this has a bug if the data were to be replaced with a different set with the same number of items
             if (previousCycleDataCount != currentCycleDataCount)
             {
-                InitializeSearchItems();
+                await InitializeSearchItems();
 
                 previousCycleDataCount = currentCycleDataCount;
             }
 
-            base.OnAfterRender(firstRender);
+            await base.OnAfterRenderAsync(firstRender);
         }
 
         protected override void OnParametersSet()
@@ -205,6 +216,12 @@ namespace ZBlazor.QuickInput
         {
             lastSelectedItem = item;
             InputValue = item?.Text ?? "";
+
+            if (RecentRepository != null && item != null)
+            {
+                await RecentRepository.AddHit(item.Key);
+                item.LastHit = DateTime.Now;
+            }
 
             if (OnItemSelected.HasDelegate)
             {
@@ -380,6 +397,11 @@ namespace ZBlazor.QuickInput
         {
             if (!hasInputValue)
             {
+                if (RecentRepository != null)
+                {
+                    return SearchItems.OrderByDescending(i => i.LastHit).ToList();
+                }
+
                 return SearchItems;
             }
 
@@ -423,7 +445,7 @@ namespace ZBlazor.QuickInput
             item.OtherMatchFieldValue = null;
         }
 
-        void InitializeSearchItems()
+        async Task InitializeSearchItems()
         {
             if (Data == null)
             {
@@ -434,7 +456,12 @@ namespace ZBlazor.QuickInput
 
             if (typeof(TItem) == typeof(string))
             {
-                SearchItems = Data.Where(i => i != null).Select(i => new SearchItem<TItem> { Text = (i as string)!, DataObject = i }).ToList();
+                SearchItems = Data.Where(i => i != null).Select(i => new SearchItem<TItem>
+                {
+                    Text = (i as string)!,
+                    DataObject = i,
+                    Key = GetKeyValueOrDefault(i)
+                }).ToList();
             }
             else
             {
@@ -443,12 +470,50 @@ namespace ZBlazor.QuickInput
                     throw new ArgumentNullException(nameof(TextField));
                 }
 
-                SearchItems = Data.Where(i => i != null).Select(i => new SearchItem<TItem> { Text = i?.GetType()?.GetProperty(TextField)?.GetValue(i, null)?.ToString() ?? "", DataObject = i }).ToList();
+                SearchItems = Data.Where(i => i != null).Select(i => new SearchItem<TItem>
+                {
+                    Text = i?.GetType()?.GetProperty(TextField)?.GetValue(i, null)?.ToString() ?? "",
+                    DataObject = i!,
+                    Key = GetKeyValueOrDefault(i!)
+                }).ToList();
+            }
+
+            if (RecentRepository != null)
+            {
+                foreach (var item in SearchItems)
+                {
+                    Console.WriteLine($"SearchItem Key: {item.Key}");
+
+                    if (item.Key != null)
+                    {
+                        item.LastHit = await RecentRepository.GetHitsForKey(item.Key);
+                    }
+
+                }
             }
 
             Debug.WriteLine("Initialized {0} SearchItems", SearchItems.Count);
 
             Calculate();
+        }
+
+        string GetKeyValueOrDefault(TItem item)
+        {
+            string? key = null;
+            if (string.IsNullOrWhiteSpace(KeyField))
+            {
+                if (item is string stringItem && RecentRepository != null)
+                {
+                    key = stringItem;
+                }
+            }
+            else
+            {
+                key = typeof(TItem).GetProperty(KeyField)?.GetValue(item, null)?.ToString() ?? Guid.NewGuid().ToString();
+            }
+            Debug.WriteLine(key);
+
+            return key ?? Guid.NewGuid().ToString();
         }
 
         void ClearInputValue()
@@ -479,7 +544,7 @@ namespace ZBlazor.QuickInput
             }
 
             // If MaxItemsToShow has a limit and we are above that, never show
-            if (MaxItemsToShow != 0 && showingIndex > MaxItemsToShow)
+            if (MaxItemsToShow != 0 && showingIndex >= MaxItemsToShow)
             {
                 return false;
             }

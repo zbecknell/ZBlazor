@@ -78,7 +78,8 @@ namespace ZBlazor.QuickInput
         public int? ShowingIndex { get; set; }
         public bool IsSelected = false;
         public bool ShouldItemShow = false;
-        public string Key = Guid.NewGuid().ToString();
+        public DateTime? LastHit;
+        public string Key = null!;
 
         /// <summary>
         /// Populated when the match is against another field other than the primary.

@@ -149,6 +149,11 @@ namespace ZBlazor
         [Parameter] public EventCallback<string> OnInputValueChanged { get; set; }
 
         /// <summary>
+        /// When present, the input will pass through this filter before performing the search.
+        /// </summary>
+        [Parameter] public Func<string?, string?>? InputValueFilter { get; set; }
+
+        /// <summary>
         /// When true, a null value will be passed to <see cref="OnItemSelected"/>. Defaults to true.
         /// </summary>
         [Parameter] public bool EmitNullOnInputClear { get; set; } = true;
@@ -351,11 +356,18 @@ namespace ZBlazor
         {
             selectedItemIndex = -1 + (SelectFirstMatch ? 1 : 0);
 
+            string? workingInputValue = InputValue;
+
+            if (InputValueFilter != null)
+            {
+                workingInputValue = InputValueFilter(workingInputValue);
+            }
+
             foreach (var item in SearchItems)
             {
                 ClearItem(item);
 
-                var match = _fuzzyMatcher.Match(InputValue ?? "", item.Text);
+                var match = _fuzzyMatcher.Match(workingInputValue ?? "", item.Text);
                 item.Matches = match.Matches;
                 item.Score = match.Score;
 
@@ -379,7 +391,7 @@ namespace ZBlazor
                             continue;
                         }
 
-                        var otherMatch = _fuzzyMatcher.Match(InputValue ?? "", otherFieldValue);
+                        var otherMatch = _fuzzyMatcher.Match(workingInputValue ?? "", otherFieldValue);
 
                         if (otherMatch != null && otherMatch.Score > item!.Score)
                         {

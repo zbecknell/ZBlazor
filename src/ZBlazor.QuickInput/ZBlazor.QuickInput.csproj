@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
     <PropertyGroup>
         <Description>A pure Blazor autocomplete component with fuzzy matching.</Description>
-        <VersionPrefix>0.1.0</VersionPrefix>
+        <VersionPrefix>0.2.0</VersionPrefix>
         <Authors>Zachary Becknell</Authors>
         <Copyright>Copyright © Zachary Becknell 2020</Copyright>
         <TreatWarningsAsError>true</TreatWarningsAsError>

@@ -8,6 +8,7 @@
                 Class="form-control"
                 MaxItemsToShow="maxItemsToShow"
                 TItem="string"
+                ItemValue="inputValue"
                 OnItemSelected="OnItemSelected"
                 HighlightMatches="highlightMatches"
                 SelectFirstMatch="selectFirstMatch"
@@ -26,6 +27,7 @@
                 Class="form-control"
                 MaxItemsToShow="maxItemsToShow"
                 TItem="RatingItem"
+                ItemValue="ratingValue"
                 OnItemSelected="OnRatingSelected"
                 HighlightMatches="highlightMatches"
                 SelectFirstMatch="selectFirstMatch"
@@ -109,7 +111,8 @@
 </div>
 
 @code {
-    string inputValue = "";
+    string inputValue = "UserAlien";
+    RatingItem ratingValue = null!;
     bool openOnFocus = true;
     bool highlightMatches = true;
     bool selectFirstMatch = true;
@@ -140,6 +143,7 @@
         if (firstRender)
         {
             countries = TestData.CountryNames;
+            ratingValue = Ratings[1];
             StateHasChanged();
         }
     }
@@ -147,11 +151,13 @@
     void OnItemSelected(string text)
     {
         selectedItems.Add(text);
+        inputValue = text;
     }
 
     void OnRatingSelected(RatingItem? rating)
     {
         selectedItems.Add(rating?.Text);
+        ratingValue = rating!;
     }
 
     class RatingItem

@@ -129,6 +129,11 @@ namespace ZBlazor
 		[Parameter] public EventCallback<TItem?> OnItemSelected { get; set; }
 
 		/// <summary>
+		/// The actual value of the selected item.
+		/// </summary>
+		[Parameter] public TItem? Value { get; set; }
+
+		/// <summary>
 		/// When true, results will be ordered with shorter values first. Takes precedence above <see cref="PrioritizePrimaryMatch"/>. Defaults to false.
 		/// </summary>
 		[Parameter] public bool PrioritizeShorterValues { get; set; } = false;
@@ -200,6 +205,11 @@ namespace ZBlazor
 				await InitializeSearchItems();
 
 				previousCycleDataCount = currentCycleDataCount;
+
+				if (Value != null)
+				{
+					InputValue = GetInputTextFromValue(Value);
+				}
 			}
 
 			await base.OnAfterRenderAsync(firstRender);
@@ -209,6 +219,12 @@ namespace ZBlazor
 		protected override void OnParametersSet()
 		{
 			selectedItemIndex = SelectFirstMatch ? 0 : -1;
+
+			if (Value != null)
+			{
+				InputValue = GetInputTextFromValue(Value);
+			}
+
 			base.OnParametersSet();
 		}
 
@@ -234,6 +250,8 @@ namespace ZBlazor
 		{
 			lastSelectedItem = item;
 			InputValue = item?.Text ?? "";
+
+			Value = item?.DataObject;
 
 			if (RecentRepository != null && item != null)
 			{
@@ -466,6 +484,28 @@ namespace ZBlazor
 			item.Score = -100;
 			item.OtherMatchFieldName = null;
 			item.OtherMatchFieldValue = null;
+		}
+
+		private string? GetInputTextFromValue(TItem? value)
+		{
+			if (value == null)
+			{
+				return null;
+			}
+
+			if (typeof(TItem) == typeof(string))
+			{
+				return (value as string)!;
+			}
+			else
+			{
+				if (TextField == null)
+				{
+					throw new ArgumentNullException(nameof(TextField));
+				}
+
+				return value?.GetType()?.GetProperty(TextField)?.GetValue(value, null)?.ToString() ?? "";
+			}
 		}
 
 		private async Task InitializeSearchItems()

@@ -126,7 +126,7 @@ namespace ZBlazor
 		/// <summary>
 		/// Occurs when the user selects a value from the list.
 		/// </summary>
-		[Parameter] public EventCallback<TItem?> OnItemSelected { get; set; }
+		[Parameter] public EventCallback<TItem?> ValueChanged { get; set; }
 
 		/// <summary>
 		/// The actual value of the selected item.
@@ -164,7 +164,7 @@ namespace ZBlazor
 		[Parameter] public Func<string?, string?>? InputValueFilter { get; set; }
 
 		/// <summary>
-		/// When true, a null value will be passed to <see cref="OnItemSelected"/>. Defaults to true.
+		/// When true, a null value will be passed to <see cref="ValueChanged"/>. Defaults to true.
 		/// </summary>
 		[Parameter] public bool EmitNullOnInputClear { get; set; } = true;
 
@@ -259,9 +259,9 @@ namespace ZBlazor
 				item.LastHit = DateTime.Now;
 			}
 
-			if (OnItemSelected.HasDelegate)
+			if (ValueChanged.HasDelegate)
 			{
-				await OnItemSelected.InvokeAsync(item?.DataObject);
+				await ValueChanged.InvokeAsync(item?.DataObject);
 			}
 
 			if (ClearAfterSelection)
@@ -587,9 +587,9 @@ namespace ZBlazor
 				isOpen = OpenOnFocus;
 			}
 
-			if (OnItemSelected.HasDelegate)
+			if (ValueChanged.HasDelegate)
 			{
-				OnItemSelected.InvokeAsync(null!);
+				ValueChanged.InvokeAsync(null!);
 			}
 
 			Calculate();

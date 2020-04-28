@@ -301,6 +301,7 @@ namespace ZBlazor
 					else
 					{
 						InputValue = lastSelectedItem?.Text;
+						await OnSelected(lastSelectedItem);
 					}
 				}
 			}

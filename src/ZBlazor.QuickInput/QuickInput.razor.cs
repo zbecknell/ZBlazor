@@ -220,10 +220,7 @@ namespace ZBlazor
 		{
 			selectedItemIndex = SelectFirstMatch ? 0 : -1;
 
-			if (Value != null)
-			{
-				InputValue = GetInputTextFromValue(Value);
-			}
+			InputValue = GetInputTextFromValue(Value);
 
 			base.OnParametersSet();
 		}

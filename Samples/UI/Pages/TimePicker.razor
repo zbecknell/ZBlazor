@@ -1,0 +1,13 @@
+﻿@page "/time-picker"
+
+<div>
+    <UI.Shared.TimePicker @bind-Value="currentTime" />
+</div>
+
+<p>
+    Selected Time: @(currentTime?.ToString("t") ?? "NULL")
+</p>
+
+@code {
+    DateTime? currentTime = new DateTime(2020, 4, 28, 9, 0, 0);
+}

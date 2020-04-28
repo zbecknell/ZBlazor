@@ -13,6 +13,7 @@ namespace BlazorWasm
 		{
 			Log.Logger = new LoggerConfiguration()
 				.WriteTo.BrowserConsole()
+				.MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
 				.MinimumLevel.Verbose()
 				.CreateLogger();
 
@@ -22,7 +23,10 @@ namespace BlazorWasm
 
 			builder.RootComponents.Add<App>("app");
 
-			builder.Services.AddBaseAddressHttpClient();
+			builder.Services.AddLogging(options =>
+			{
+				options.AddSerilog();
+			});
 
 			await builder.Build().RunAsync();
 		}

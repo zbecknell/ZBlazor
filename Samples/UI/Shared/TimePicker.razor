@@ -1,0 +1,181 @@
+﻿<QuickInput Data="Times"
+            inputmode="numeric"
+            TItem="TimePickerItem"
+            placeholder="@Placeholder"
+            TextField="Display"
+            Value="PickerValue"
+            ValueChanged="OnValueChange"
+            OtherMatchFields="@(new[] { nameof(TimePickerItem.TwentyFourHourFormattedString) })"
+            MaxItemsToShow="2"
+            PrioritizePrimaryMatch="true"
+            PrioritizeShorterValues="true"
+            InputValueFilter="FilterInputValue"
+            disabled="@(!Enabled)"
+            AllowCustomValues="false">
+    <NoResultsView>
+        @if (MinTime == null && MaxTime == null)
+        {
+            <span>Please enter a time@(GetIntervalDisplay()).</span>
+        }
+        else
+        {
+            if (MinTime == null && MaxTime != null)
+            {
+                <span>Please enter a time before @MaxTime.Value.ToString("h:mm tt")@(GetIntervalDisplay()).</span>
+            }
+            else if (MinTime != null && MaxTime == null)
+            {
+                <span>Please enter a time after @MinTime.Value.ToString("h:mm tt")@(GetIntervalDisplay()).</span>
+            }
+            else if (MinTime != null && MaxTime != null)
+            {
+                <span>Please enter a time between @MinTime.Value.ToString("h:mm tt") and @MaxTime.Value.ToString("h:mm tt")@(GetIntervalDisplay()).</span>
+            }
+        }
+    </NoResultsView>
+</QuickInput>
+
+@code {
+    List<TimePickerItem> Times = new List<TimePickerItem>();
+
+    /// <summary>
+    /// The <see cref="TimeSpan"/> between available times. Defaults to 1 minute.
+    /// </summary>
+    [Parameter] public TimeSpan Interval { get; set; } = TimeSpan.FromMinutes(1);
+
+    [Parameter] public string Placeholder { get; set; } = "Enter a time";
+
+    /// <summary>
+    /// The minimum time allowed in the picker.
+    /// </summary>
+    [Parameter] public DateTime? MinTime { get; set; }
+
+    /// <summary>
+    /// The maximum time allowed in the picker.
+    /// </summary>
+    [Parameter] public DateTime? MaxTime { get; set; }
+
+    /// <summary>
+    /// The selected value in the picker.
+    /// </summary>
+    [Parameter] public DateTime? Value { get; set; }
+
+    private TimePickerItem? PickerValue => GetPickerValue();
+
+    /// <summary>
+    /// Fires when the selected time changes.
+    /// </summary>
+    [Parameter] public EventCallback<DateTime?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// When true, the underlying input is enabled. Defaults to true.
+    /// </summary>
+    [Parameter] public bool Enabled { get; set; } = true;
+
+    protected override Task OnParametersSetAsync()
+    {
+        PopulateAvailableTimes();
+        return Task.CompletedTask;
+    }
+
+    async Task OnValueChange(TimePickerItem? item)
+    {
+        if (ValueChanged.HasDelegate)
+        {
+            await ValueChanged.InvokeAsync(item?.Value);
+        }
+    }
+
+    TimePickerItem? GetPickerValue()
+    {
+        if (Value != null && Times.Any())
+        {
+            var item = Times.FirstOrDefault(t =>
+                t.Value.Hour == Value?.Hour &&
+                t.Value.Minute == Value?.Minute);
+
+            return item;
+        }
+
+        return null;
+    }
+
+    void PopulateAvailableTimes()
+    {
+        Times = AllTimes
+            .Where(t => t.Value.Minute % Interval.Minutes == 0
+                && t.Value >= (MinTime ?? DateTime.MinValue)
+                && t.Value <= (MaxTime ?? DateTime.MaxValue)).ToList();
+    }
+
+    string? FilterInputValue(string? value)
+    {
+        // What are we doing?
+        // When a user enters 1:25 AM and backs out to do 1:250
+        // we want to be nice to the user and ignore the : in this instance
+        // so they can match to 12:50
+        if (value?.IndexOf(':') == 1 && value?.Length > 4)
+        {
+            var regex = new System.Text.RegularExpressions.Regex(@"\d:\d\d\d");
+
+            if (regex.IsMatch(value))
+            {
+                return value.Replace(":", "");
+            }
+        }
+
+        return value;
+    }
+
+    public class TimePickerItem
+    {
+        public DateTime Value { get; set; }
+        public string Display { get; set; } = null!;
+        public string TwentyFourHourFormattedString { get; set; } = null!;
+
+        public override string ToString() => Display;
+    }
+
+    public static List<TimePickerItem> AllTimes = PopulateAllTimes();
+
+    private static List<TimePickerItem> PopulateAllTimes(string defaultFormat = "h:mm tt", string defaultTwentyFourFormat = "HH:mm tt")
+    {
+        var interval = TimeSpan.FromMinutes(1);
+        var baseTime = DateTime.MinValue;
+
+        var startTime = new DateTime(baseTime.Year, baseTime.Month, baseTime.Day, 0, 0, 0);
+
+        var endTime = baseTime.AddDays(1);
+
+        var workingTime = startTime;
+
+        // We're starting at midnight, so move ahead one interval
+        workingTime += interval;
+
+        var times = new List<TimePickerItem>();
+
+        while (workingTime <= endTime)
+        {
+            times.Add(new TimePickerItem
+            {
+                Value = workingTime,
+                Display = workingTime.ToString(defaultFormat),
+                TwentyFourHourFormattedString = workingTime.ToString(defaultTwentyFourFormat)
+            });
+
+            workingTime += interval;
+        }
+
+        return times;
+    }
+
+    private string GetIntervalDisplay()
+    {
+        if (Interval.Minutes > 1)
+        {
+            return $" in {Interval.Minutes} minute intervals";
+        }
+
+        return "";
+    }
+}

@@ -488,13 +488,16 @@ namespace ZBlazor
 
 		private string? GetInputTextFromValue(TItem? value)
 		{
+			Logger?.LogDebug("GetInputTextFromValue: {Value}", value);
 			if (value == null)
 			{
+				Logger?.LogDebug("GetInputTextFromValue: {Result}", null);
 				return null;
 			}
 
 			if (typeof(TItem) == typeof(string))
 			{
+				Logger?.LogDebug("GetInputTextFromValue: {Result}", value as string);
 				return (value as string)!;
 			}
 			else
@@ -504,7 +507,11 @@ namespace ZBlazor
 					throw new ArgumentNullException(nameof(TextField));
 				}
 
-				return value?.GetType()?.GetProperty(TextField)?.GetValue(value, null)?.ToString() ?? "";
+				var result = value?.GetType()?.GetProperty(TextField)?.GetValue(value, null)?.ToString() ?? "";
+
+				Logger?.LogDebug("GetInputTextFromValue: {Result}", result);
+
+				return result;
 			}
 		}
 
@@ -580,6 +587,7 @@ namespace ZBlazor
 		{
 			lastSelectedItem = null;
 			InputValue = "";
+			Value = null;
 
 			if (isFocused)
 			{

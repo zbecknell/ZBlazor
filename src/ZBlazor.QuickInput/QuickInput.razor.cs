@@ -206,10 +206,7 @@ namespace ZBlazor
 
 				previousCycleDataCount = currentCycleDataCount;
 
-				if (Value != null)
-				{
-					InputValue = GetInputTextFromValue(Value);
-				}
+				InputValue = GetInputTextFromValue(Value);
 			}
 
 			await base.OnAfterRenderAsync(firstRender);
@@ -489,7 +486,7 @@ namespace ZBlazor
 			if (value == null)
 			{
 				Logger?.LogDebug("GetInputTextFromValue: {Result}", null);
-				return null;
+				return "";
 			}
 
 			if (typeof(TItem) == typeof(string))

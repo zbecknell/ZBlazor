@@ -207,6 +207,11 @@ namespace ZBlazor
 		[Parameter] public bool ChooseItemOnTab { get; set; }
 
 		/// <summary>
+		/// When true, the currently selected item in the list will be chosen on blur. Defaults to false.
+		/// </summary>
+		[Parameter] public bool ChooseItemOnBlur { get; set; }
+
+		/// <summary>
 		/// Any unmatched element attributes to be applied to the input.
 		/// </summary>
 		[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> InputAttributes { get; set; } = new Dictionary<string, object>();
@@ -308,6 +313,11 @@ namespace ZBlazor
 			await Task.Delay(100);
 			if (!isMouseDown)
 			{
+				if (ChooseItemOnBlur)
+				{
+					await ChooseSelected();
+				}
+
 				isOpen = false;
 
 				if (!AllowCustomValues &&
@@ -361,7 +371,8 @@ namespace ZBlazor
 					isOpen = true;
 					break;
 				case "Tab":
-					if (ChooseItemOnTab)
+					// If we're choosing item on blur, we don't need to also choose on tab
+					if (ChooseItemOnTab && !ChooseItemOnBlur)
 					{
 						await ChooseSelected();
 					}

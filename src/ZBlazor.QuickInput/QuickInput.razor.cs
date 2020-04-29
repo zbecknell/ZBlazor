@@ -187,22 +187,22 @@ namespace ZBlazor
 		/// <summary>
 		/// The debounce delay in milliseconds between filtering results during typing. Defaults to 0.
 		/// </summary>
-        [Parameter] public int DebounceMilliseconds { get; set; } = 0;
+		[Parameter] public int DebounceMilliseconds { get; set; } = 0;
 
 		/// <summary>
 		/// The initialization delay in milliseconds. Occurs before initializing the list of search items. Defaults to 100.
 		/// </summary>
-        [Parameter] public int InitializationDelayMilliseconds { get; set; } = 100;
+		[Parameter] public int InitializationDelayMilliseconds { get; set; } = 100;
 
 		/// <summary>
 		/// When true, the currently selected item in the list will be chosen when the Tab key is pressed. Defaults to false.
 		/// </summary>
 		[Parameter] public bool ChooseItemOnTab { get; set; }
 
-        /// <summary>
-        /// Any unmatched element attributes to be applied to the input.
-        /// </summary>
-        [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> InputAttributes { get; set; } = new Dictionary<string, object>();
+		/// <summary>
+		/// Any unmatched element attributes to be applied to the input.
+		/// </summary>
+		[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> InputAttributes { get; set; } = new Dictionary<string, object>();
 
 		#endregion PARAMETERS
 
@@ -231,7 +231,7 @@ namespace ZBlazor
 		/// <inheritdoc/>
 		protected override async Task OnParametersSetAsync()
 		{
-			selectedItemIndex = SelectFirstMatch ? 0 : -1;
+			selectedItemIndex = GetDefaultSelectedItemIndex();
 
 			InputValue = await GetInputTextFromValue(Value);
 
@@ -253,8 +253,8 @@ namespace ZBlazor
 
 			isOpen = OpenOnFocus || hasInputValue;
 
-            await FilterDebounced();
-        }
+			await FilterDebounced();
+		}
 
 		private async Task OnSelected(SearchItem<TItem>? item)
 		{
@@ -294,7 +294,7 @@ namespace ZBlazor
 			}
 
 			isFocused = true;
-        }
+		}
 
 		private async Task OnBlur(FocusEventArgs args)
 		{
@@ -352,15 +352,15 @@ namespace ZBlazor
 					isOpen = true;
 					break;
 				case "Tab":
-					if(ChooseItemOnTab)
+					if (ChooseItemOnTab)
 					{
-                        await ChooseSelected();
-                    }
-                    break;
-                case "Enter":
-                    await ChooseSelected();
-                    break;
-                case "Escape":
+						await ChooseSelected();
+					}
+					break;
+				case "Enter":
+					await ChooseSelected();
+					break;
+				case "Escape":
 					if (!hasInputValue)
 					{
 						isOpen = !isOpen;
@@ -399,42 +399,52 @@ namespace ZBlazor
 			isMouseDown = false;
 		}
 
-        #endregion EVENTS
+		#endregion EVENTS
 
-        #region METHODS
+		#region METHODS
 
-        bool IsFiltering => currentSearchCts != null;
+		bool IsFiltering => currentSearchCts != null;
 
-        CancellationTokenSource? currentSearchCts;
+		CancellationTokenSource? currentSearchCts;
 
 		private async ValueTask FilterDebounced(int? debounceMilliseconds = null)
 		{
-            try
-            {
-                // Cancel any existing pending search, and begin a new one
-                currentSearchCts?.Cancel();
-                currentSearchCts = new CancellationTokenSource();
-                var cancellationToken = currentSearchCts.Token;
+			try
+			{
+				// Cancel any existing pending search, and begin a new one
+				currentSearchCts?.Cancel();
+				currentSearchCts = new CancellationTokenSource();
+				var cancellationToken = currentSearchCts.Token;
 
-                await Task.Delay(debounceMilliseconds ?? DebounceMilliseconds);
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    await Filter(cancellationToken);
+				await Task.Delay(debounceMilliseconds ?? DebounceMilliseconds);
+				if (!cancellationToken.IsCancellationRequested)
+				{
+					await Filter(cancellationToken);
 					currentSearchCts = null;
-                }
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                Logger?.LogError(ex, ex.Message);
-            }
+				}
+			}
+			catch (OperationCanceledException) { }
+			catch (Exception ex)
+			{
+				Logger?.LogError(ex, ex.Message);
+			}
+		}
+
+		private int GetDefaultSelectedItemIndex()
+		{
+			if ((hasInputValue || !ChooseItemOnTab) && SelectFirstMatch)
+			{
+				return 1;
+			}
+
+			return 0;
 		}
 
 		private ValueTask Filter(CancellationToken? cancellationToken = null)
 		{
-            Logger?.LogDebug("Filtering {InputValue}", InputValue);
+			Logger?.LogDebug("Filtering {InputValue}", InputValue);
 
-            selectedItemIndex = -1 + (SelectFirstMatch ? 1 : 0);
+			selectedItemIndex = -1 + GetDefaultSelectedItemIndex();
 
 			string? workingInputValue = InputValue;
 
@@ -447,10 +457,10 @@ namespace ZBlazor
 			{
 				ClearItem(item);
 
-				if(cancellationToken?.IsCancellationRequested ?? false)
+				if (cancellationToken?.IsCancellationRequested ?? false)
 				{
-                    return default;
-                }
+					return default;
+				}
 
 				var match = _fuzzyMatcher.Match(workingInputValue ?? "", item.Text);
 				item.Matches = match.Matches;
@@ -467,10 +477,10 @@ namespace ZBlazor
 
 					foreach (var otherField in OtherMatchFields)
 					{
-						if(cancellationToken?.IsCancellationRequested ?? false)
+						if (cancellationToken?.IsCancellationRequested ?? false)
 						{
-                            return default;
-                        }
+							return default;
+						}
 
 						var otherFieldValue = itemType.GetProperty(otherField)?.GetValue(item!.DataObject)?.ToString();
 
@@ -492,8 +502,8 @@ namespace ZBlazor
 				}
 			}
 
-            return default;
-        }
+			return default;
+		}
 
 		/// <summary>
 		/// Gets the propertly ordered list of search items.
@@ -569,15 +579,15 @@ namespace ZBlazor
 
 				var result = value?.GetType()?.GetProperty(TextField)?.GetValue(value, null)?.ToString() ?? "";
 
-                return new ValueTask<string?>(result);
-            }
+				return new ValueTask<string?>(result);
+			}
 		}
 
 		private async Task InitializeSearchItems()
 		{
-            await Task.Delay(InitializationDelayMilliseconds);
+			await Task.Delay(InitializationDelayMilliseconds);
 
-            if (Data == null)
+			if (Data == null)
 			{
 				Logger?.LogDebug("InitializeSearchItems: Data null, clearing any existing SearchItems.");
 				SearchItems.Clear();

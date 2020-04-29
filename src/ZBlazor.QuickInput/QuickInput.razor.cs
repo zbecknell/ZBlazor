@@ -117,6 +117,11 @@ namespace ZBlazor
 		[Parameter] public RenderFragment? NoResultsView { get; set; }
 
 		/// <summary>
+		/// When populated, will display when no input is present.
+		/// </summary>
+		[Parameter] public RenderFragment? NoInputView { get; set; }
+
+		/// <summary>
 		/// When populated, the matcher will also check other named fields on <code>TItem</code> for a filter match.
 		/// </summary>
 		[Parameter] public IEnumerable<string>? OtherMatchFields { get; set; }
@@ -365,6 +370,7 @@ namespace ZBlazor
 					await ChooseSelected();
 					break;
 				case "Escape":
+					// TODO: this doesn't really work
 					preventKeyDownDefault = true;
 					if (!hasInputValue)
 					{

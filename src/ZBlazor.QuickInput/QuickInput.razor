@@ -40,7 +40,12 @@
         <div class="zb-quick-input-items-scrollable">
             @if (!IsFiltering && hasInputValue && SearchItems.All(i => !i.IsMatch))
             {
-                <div class="zb-quick-input-item" @onclick:preventDefault="true" @onclick:stopPropagation="true">
+                <div class="zb-quick-input-item"
+                     @onclick:preventDefault="true"
+                     @onclick:stopPropagation="true"
+                     @onmousedown:stopPropagation="true"
+                     @onmousedown:preventDefault="true"
+                     @onclick="@(() => isOpen = false)">
                     @if (NoResultsView != null)
                     {
                         @NoResultsView
@@ -49,6 +54,17 @@
                     {
                         <span>No items found</span>
                     }
+                </div>
+            }
+            else if (!hasInputValue && NoInputView != null)
+            {
+                <div class="zb-quick-input-item"
+                     @onclick:preventDefault="true"
+                     @onclick:stopPropagation="true"
+                     @onmousedown:preventDefault="true"
+                     @onmousedown:stopPropagation="true"
+                     @onclick="@(() => isOpen = false)">
+                    @NoInputView
                 </div>
             }
             else

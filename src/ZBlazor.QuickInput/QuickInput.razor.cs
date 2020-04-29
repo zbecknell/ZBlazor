@@ -297,7 +297,7 @@ namespace ZBlazor
 			}
 			else
 			{
-				FilterDebounced(500);
+				await FilterDebounced();
 			}
 
 			isOpen = false;
@@ -315,13 +315,15 @@ namespace ZBlazor
 
 		private async Task OnBlur(FocusEventArgs args)
 		{
-			await Task.Delay(100);
 			if (!isMouseDown)
 			{
 				if (ChooseItemOnBlur)
 				{
 					await ChooseSelected();
-				}
+					isOpen = false;
+                    isFocused = false;
+                    return;
+                }
 
 				isOpen = false;
 
@@ -333,7 +335,7 @@ namespace ZBlazor
 						if (lastSelectedItem != null)
 						{
 							await OnSelected(null);
-							FilterDebounced(500);
+							await FilterDebounced();
 						}
 					}
 					else
@@ -408,7 +410,7 @@ namespace ZBlazor
 				await OnSelected(selectedItem);
 			}
 
-			FilterDebounced(500);
+			await FilterDebounced();
 		}
 
 		private void OnMouseDown(MouseEventArgs args)
@@ -690,7 +692,7 @@ namespace ZBlazor
 				}
 			}
 
-			await FilterDebounced(500);
+			await FilterDebounced();
 		}
 
 		private string GetKeyValueOrDefault(TItem item)

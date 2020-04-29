@@ -1,0 +1,10 @@
+﻿@page "/filter-types"
+
+<h6>Choose a country (Fuzzy)</h6>
+<QuickInput TItem="string" Data="TestData.CountryNames" />
+
+<h6>Choose a country (Contains)</h6>
+<QuickInput TItem="string" Data="TestData.CountryNames" FilterType="FilterType.Contains" />
+
+<h6>Choose a country (Starts With)</h6>
+<QuickInput TItem="string" Data="TestData.CountryNames" FilterType="FilterType.StartsWith" />

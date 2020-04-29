@@ -47,6 +47,11 @@ namespace ZBlazor
 		[Parameter] public IEnumerable<TItem> Data { get; set; } = null!;
 
 		/// <summary>
+		/// The type of filter to use. Defaults to <see cref="FilterType.Fuzzy"/>.
+		/// </summary>
+		[Parameter] public FilterType FilterType { get; set; }
+
+		/// <summary>
 		/// When the type of TItem is not a string, this denotes the field name that should be used to display the item text. Defaults to "Text".
 		/// </summary>
 		[Parameter] public string? TextField { get; set; } = "Text";
@@ -484,7 +489,26 @@ namespace ZBlazor
 					return default;
 				}
 
-				var match = _fuzzyMatcher.Match(workingInputValue ?? "", item.Text);
+				MatchData match;
+
+				if (FilterType == FilterType.Contains)
+				{
+					match = SimpleMatcher.MatchContains(workingInputValue ?? "", item.Text);
+				}
+				else if (FilterType == FilterType.StartsWith)
+				{
+					match = SimpleMatcher.MatchStartsWith(workingInputValue ?? "", item.Text);
+				}
+				else
+				{
+					match = _fuzzyMatcher.Match(workingInputValue ?? "", item.Text);
+				}
+
+				if (match.Score > 0)
+				{
+					Logger?.LogDebug("Match: {@Match}", match);
+				}
+
 				item.Matches = match.Matches;
 				item.Score = match.Score;
 
@@ -511,7 +535,21 @@ namespace ZBlazor
 							continue;
 						}
 
-						var otherMatch = _fuzzyMatcher.Match(workingInputValue ?? "", otherFieldValue);
+						// TODO: DRY
+						MatchData otherMatch;
+
+						if (FilterType == FilterType.Contains)
+						{
+							otherMatch = SimpleMatcher.MatchContains(workingInputValue ?? "", otherFieldValue);
+						}
+						else if (FilterType == FilterType.StartsWith)
+						{
+							otherMatch = SimpleMatcher.MatchStartsWith(workingInputValue ?? "", otherFieldValue);
+						}
+						else
+						{
+							otherMatch = _fuzzyMatcher.Match(workingInputValue ?? "", otherFieldValue);
+						}
 
 						if (otherMatch != null && otherMatch.Score > item!.Score)
 						{

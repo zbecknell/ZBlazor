@@ -11,6 +11,7 @@
             PrioritizeShorterValues="true"
             InputValueFilter="FilterInputValue"
             disabled="@(!Enabled)"
+            ChooseItemOnTab="true"
             AllowCustomValues="false">
     <NoResultsView>
         @if (MinTime == null && MaxTime == null)
@@ -80,9 +81,11 @@
 
     async Task OnValueChange(TimePickerItem? item)
     {
+        Value = item?.Value;
+
         if (ValueChanged.HasDelegate)
         {
-            await ValueChanged.InvokeAsync(item?.Value);
+            await ValueChanged.InvokeAsync(Value);
         }
     }
 

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ZBlazor.QuickInput;
 
@@ -184,9 +185,24 @@ namespace ZBlazor
 		[Parameter] public RenderFragment<SearchItem<TItem>>? ItemTemplate { get; set; }
 
 		/// <summary>
-		/// Any unmatched element attributes to be applied to the input.
+		/// The debounce delay in milliseconds between filtering results during typing. Defaults to 0.
 		/// </summary>
-		[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> InputAttributes { get; set; } = new Dictionary<string, object>();
+        [Parameter] public int DebounceMilliseconds { get; set; } = 0;
+
+		/// <summary>
+		/// The initialization delay in milliseconds. Occurs before initializing the list of search items. Defaults to 100.
+		/// </summary>
+        [Parameter] public int InitializationDelayMilliseconds { get; set; } = 100;
+
+		/// <summary>
+		/// When true, the currently selected item in the list will be chosen when the Tab key is pressed. Defaults to false.
+		/// </summary>
+		[Parameter] public bool ChooseItemOnTab { get; set; }
+
+        /// <summary>
+        /// Any unmatched element attributes to be applied to the input.
+        /// </summary>
+        [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> InputAttributes { get; set; } = new Dictionary<string, object>();
 
 		#endregion PARAMETERS
 
@@ -206,20 +222,20 @@ namespace ZBlazor
 
 				previousCycleDataCount = currentCycleDataCount;
 
-				InputValue = GetInputTextFromValue(Value);
+				InputValue = await GetInputTextFromValue(Value);
 			}
 
 			await base.OnAfterRenderAsync(firstRender);
 		}
 
 		/// <inheritdoc/>
-		protected override void OnParametersSet()
+		protected override async Task OnParametersSetAsync()
 		{
 			selectedItemIndex = SelectFirstMatch ? 0 : -1;
 
-			InputValue = GetInputTextFromValue(Value);
+			InputValue = await GetInputTextFromValue(Value);
 
-			base.OnParametersSet();
+			await base.OnParametersSetAsync();
 		}
 
 		#endregion LIFECYCLE
@@ -237,8 +253,8 @@ namespace ZBlazor
 
 			isOpen = OpenOnFocus || hasInputValue;
 
-			Calculate();
-		}
+            await FilterDebounced();
+        }
 
 		private async Task OnSelected(SearchItem<TItem>? item)
 		{
@@ -260,11 +276,11 @@ namespace ZBlazor
 
 			if (ClearAfterSelection)
 			{
-				ClearInputValue();
+				await ClearInputValue();
 			}
 			else
 			{
-				Calculate();
+				FilterDebounced(500);
 			}
 
 			isOpen = false;
@@ -278,7 +294,7 @@ namespace ZBlazor
 			}
 
 			isFocused = true;
-		}
+        }
 
 		private async Task OnBlur(FocusEventArgs args)
 		{
@@ -295,7 +311,7 @@ namespace ZBlazor
 						if (lastSelectedItem != null)
 						{
 							await OnSelected(null);
-							Calculate();
+							FilterDebounced(500);
 						}
 					}
 					else
@@ -335,26 +351,37 @@ namespace ZBlazor
 					}
 					isOpen = true;
 					break;
-				case "Enter":
-					var selectedItem = SearchItems.SingleOrDefault(i => i.IsSelected);
-					if (selectedItem != null)
+				case "Tab":
+					if(ChooseItemOnTab)
 					{
-						await OnSelected(selectedItem);
-					}
-
-					Calculate();
-					break;
-				case "Escape":
+                        await ChooseSelected();
+                    }
+                    break;
+                case "Enter":
+                    await ChooseSelected();
+                    break;
+                case "Escape":
 					if (!hasInputValue)
 					{
 						isOpen = !isOpen;
 					}
 					else if (ClearOnEscape)
 					{
-						ClearInputValue();
+						await ClearInputValue();
 					}
 					break;
 			}
+		}
+
+		private async Task ChooseSelected()
+		{
+			var selectedItem = SearchItems.SingleOrDefault(i => i.IsSelected);
+			if (selectedItem != null)
+			{
+				await OnSelected(selectedItem);
+			}
+
+			FilterDebounced(500);
 		}
 
 		private void OnMouseDown(MouseEventArgs args)
@@ -372,13 +399,42 @@ namespace ZBlazor
 			isMouseDown = false;
 		}
 
-		#endregion EVENTS
+        #endregion EVENTS
 
-		#region METHODS
+        #region METHODS
 
-		private void Calculate()
+        bool IsFiltering => currentSearchCts != null;
+
+        CancellationTokenSource? currentSearchCts;
+
+		private async ValueTask FilterDebounced(int? debounceMilliseconds = null)
 		{
-			selectedItemIndex = -1 + (SelectFirstMatch ? 1 : 0);
+            try
+            {
+                // Cancel any existing pending search, and begin a new one
+                currentSearchCts?.Cancel();
+                currentSearchCts = new CancellationTokenSource();
+                var cancellationToken = currentSearchCts.Token;
+
+                await Task.Delay(debounceMilliseconds ?? DebounceMilliseconds);
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    await Filter(cancellationToken);
+					currentSearchCts = null;
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                Logger?.LogError(ex, ex.Message);
+            }
+		}
+
+		private ValueTask Filter(CancellationToken? cancellationToken = null)
+		{
+            Logger?.LogDebug("Filtering {InputValue}", InputValue);
+
+            selectedItemIndex = -1 + (SelectFirstMatch ? 1 : 0);
 
 			string? workingInputValue = InputValue;
 
@@ -390,6 +446,11 @@ namespace ZBlazor
 			foreach (var item in SearchItems)
 			{
 				ClearItem(item);
+
+				if(cancellationToken?.IsCancellationRequested ?? false)
+				{
+                    return default;
+                }
 
 				var match = _fuzzyMatcher.Match(workingInputValue ?? "", item.Text);
 				item.Matches = match.Matches;
@@ -406,6 +467,11 @@ namespace ZBlazor
 
 					foreach (var otherField in OtherMatchFields)
 					{
+						if(cancellationToken?.IsCancellationRequested ?? false)
+						{
+                            return default;
+                        }
+
 						var otherFieldValue = itemType.GetProperty(otherField)?.GetValue(item!.DataObject)?.ToString();
 
 						if (string.IsNullOrWhiteSpace(otherFieldValue))
@@ -425,7 +491,9 @@ namespace ZBlazor
 					}
 				}
 			}
-		}
+
+            return default;
+        }
 
 		/// <summary>
 		/// Gets the propertly ordered list of search items.
@@ -481,19 +549,16 @@ namespace ZBlazor
 			item.OtherMatchFieldValue = null;
 		}
 
-		private string? GetInputTextFromValue(TItem? value)
+		private ValueTask<string?> GetInputTextFromValue(TItem? value)
 		{
-			Logger?.LogDebug("GetInputTextFromValue: {Value}", value);
 			if (value == null)
 			{
-				Logger?.LogDebug("GetInputTextFromValue: {Result}", null);
-				return "";
+				return new ValueTask<string?>("");
 			}
 
 			if (typeof(TItem) == typeof(string))
 			{
-				Logger?.LogDebug("GetInputTextFromValue: {Result}", value as string);
-				return (value as string)!;
+				return new ValueTask<string?>((value as string)!);
 			}
 			else
 			{
@@ -504,15 +569,15 @@ namespace ZBlazor
 
 				var result = value?.GetType()?.GetProperty(TextField)?.GetValue(value, null)?.ToString() ?? "";
 
-				Logger?.LogDebug("GetInputTextFromValue: {Result}", result);
-
-				return result;
-			}
+                return new ValueTask<string?>(result);
+            }
 		}
 
 		private async Task InitializeSearchItems()
 		{
-			if (Data == null)
+            await Task.Delay(InitializationDelayMilliseconds);
+
+            if (Data == null)
 			{
 				Logger?.LogDebug("InitializeSearchItems: Data null, clearing any existing SearchItems.");
 				SearchItems.Clear();
@@ -555,9 +620,7 @@ namespace ZBlazor
 				}
 			}
 
-			Logger?.LogDebug("Initialized {0} SearchItems", SearchItems.Count);
-
-			Calculate();
+			await FilterDebounced(500);
 		}
 
 		private string GetKeyValueOrDefault(TItem item)
@@ -578,7 +641,7 @@ namespace ZBlazor
 			return key ?? Guid.NewGuid().ToString();
 		}
 
-		private void ClearInputValue()
+		private async ValueTask ClearInputValue()
 		{
 			lastSelectedItem = null;
 			InputValue = "";
@@ -592,10 +655,10 @@ namespace ZBlazor
 
 			if (ValueChanged.HasDelegate)
 			{
-				ValueChanged.InvokeAsync(null!);
+				await ValueChanged.InvokeAsync(null!);
 			}
 
-			Calculate();
+			await FilterDebounced(50);
 		}
 
 		private bool ShouldItemShow(bool isMatch, int showingIndex)
@@ -620,7 +683,7 @@ namespace ZBlazor
 
 			// State Open + In Limit + NOT Matching
 			// If we DON'T have an input value, we show the default list
-			if (!hasInputValue)
+			if (!hasInputValue || IsFiltering)
 			{
 				return true;
 			}

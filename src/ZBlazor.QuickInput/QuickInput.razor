@@ -21,7 +21,7 @@
         <span class="zb-quick-input-clear-button"
               title="Clear value"
               style="@($"{(hasInputValue ? "" : "display: none;")}")"
-              @onclick="ClearInputValue"
+              @onclick="@(async () => await ClearInputValue())"
               @onclick:stopPropagation="true"
               @onclick:preventDefault="true"
               @onmousedown:preventDefault="true"
@@ -36,7 +36,7 @@
          @onmousedown="OnMouseDown"
          @onmouseup="OnMouseUp">
         <div class="zb-quick-input-items-scrollable">
-            @if (hasInputValue && SearchItems.All(i => !i.IsMatch))
+            @if (!IsFiltering && hasInputValue && SearchItems.All(i => !i.IsMatch))
             {
                 <div class="zb-quick-input-item" @onclick:preventDefault="true" @onclick:stopPropagation="true">
                     @if (NoResultsView != null)

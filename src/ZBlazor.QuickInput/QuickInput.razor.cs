@@ -30,6 +30,8 @@ namespace ZBlazor
 
 		[Inject] private ILogger<QuickInput<TItem>>? Logger { get; set; }
 
+		bool preventKeyDownDefault = false;
+
 		#endregion FIELDS
 
 		#region PARAMETERS
@@ -327,6 +329,8 @@ namespace ZBlazor
 
 		private async Task OnKeyDown(KeyboardEventArgs args)
 		{
+			preventKeyDownDefault = false;
+
 			switch (args.Code)
 			{
 				case "ArrowDown":
@@ -361,6 +365,7 @@ namespace ZBlazor
 					await ChooseSelected();
 					break;
 				case "Escape":
+					preventKeyDownDefault = true;
 					if (!hasInputValue)
 					{
 						isOpen = !isOpen;

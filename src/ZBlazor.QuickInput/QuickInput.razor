@@ -8,6 +8,8 @@
            @attributes="InputAttributes"
            @oninput="OnValueChange"
            @onkeydown="OnKeyDown"
+           @onkeydown:preventDefault="preventKeyDownDefault"
+           @onkeydown:stopPropagation="preventKeyDownDefault"
            @onfocus="OnFocus"
            @onblur="OnBlur"
            @onmousedown="OnMouseDown"

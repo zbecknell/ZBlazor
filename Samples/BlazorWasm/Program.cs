@@ -28,6 +28,8 @@ namespace BlazorWasm
 				options.AddSerilog();
 			});
 
+			builder.Services.AddSharedServices();
+
 			await builder.Build().RunAsync();
 		}
 	}

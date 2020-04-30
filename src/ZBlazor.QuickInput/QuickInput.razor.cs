@@ -317,15 +317,14 @@ namespace ZBlazor
 		{
 			if (!isMouseDown)
 			{
+				isOpen = false;
+
 				if (ChooseItemOnBlur)
 				{
 					await ChooseSelected();
-					isOpen = false;
                     isFocused = false;
                     return;
                 }
-
-				isOpen = false;
 
 				if (!AllowCustomValues &&
 					(string.IsNullOrWhiteSpace(InputValue) || SearchItems.All(i => i.Text != InputValue)))
@@ -405,10 +404,8 @@ namespace ZBlazor
 		private async Task ChooseSelected()
 		{
 			var selectedItem = SearchItems.SingleOrDefault(i => i.IsSelected);
-			if (selectedItem != null)
-			{
-				await OnSelected(selectedItem);
-			}
+
+			await OnSelected(selectedItem);
 
             await ClearSelectedValue();
             await FilterDebounced();

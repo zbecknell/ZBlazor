@@ -248,7 +248,7 @@ namespace ZBlazor
 		/// <inheritdoc/>
 		protected override async Task OnParametersSetAsync()
 		{
-			selectedItemIndex = GetDefaultSelectedItemIndex();
+			selectedItemIndex = -1 + GetDefaultSelectedItemIndex();
 
 			InputValue = await GetInputTextFromValue(Value);
 
@@ -459,7 +459,7 @@ namespace ZBlazor
 
 		private int GetDefaultSelectedItemIndex()
 		{
-			if ((hasInputValue || !ChooseItemOnTab) && SelectFirstMatch)
+			if (hasInputValue && SelectFirstMatch)
 			{
 				return 1;
 			}

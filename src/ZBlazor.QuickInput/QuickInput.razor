@@ -38,6 +38,11 @@
          @onmousedown="OnMouseDown"
          @onmouseup="OnMouseUp">
         <div class="zb-quick-input-items-scrollable">
+            @foreach (var item in SearchItems.Where(i => i.IsSelected))
+            {
+                item.IsSelected = false;
+            }
+
             @if (!IsFiltering && hasInputValue && SearchItems.All(i => !i.IsMatch))
             {
                 <div class="zb-quick-input-item"
@@ -70,11 +75,6 @@
             else
             {
                 int showingIndex = 0;
-
-                foreach (var item in SearchItems.Where(i => i.IsSelected))
-                {
-                    item.IsSelected = false;
-                }
 
                 foreach (var item in GetOrderedSearchItems())
                 {

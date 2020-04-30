@@ -317,13 +317,12 @@ namespace ZBlazor
 		{
 			if (!isMouseDown)
 			{
-				isOpen = false;
 
 				if (ChooseItemOnBlur)
 				{
 					await ChooseSelected();
-                    isFocused = false;
-                    return;
+                    // isFocused = false;
+                    //return;
                 }
 
 				if (!AllowCustomValues &&
@@ -343,6 +342,7 @@ namespace ZBlazor
 						await OnSelected(lastSelectedItem);
 					}
 				}
+				isOpen = false;
 			}
 
 			isFocused = false;
@@ -405,7 +405,10 @@ namespace ZBlazor
 		{
 			var selectedItem = SearchItems.SingleOrDefault(i => i.IsSelected);
 
-			await OnSelected(selectedItem);
+			if(selectedItem != null)
+			{
+				await OnSelected(selectedItem);
+			}
 
             await ClearSelectedValue();
             await FilterDebounced();

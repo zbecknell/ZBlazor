@@ -410,7 +410,8 @@ namespace ZBlazor
 				await OnSelected(selectedItem);
 			}
 
-			await FilterDebounced();
+            await ClearSelectedValue();
+            await FilterDebounced();
 		}
 
 		private void OnMouseDown(MouseEventArgs args)
@@ -730,8 +731,19 @@ namespace ZBlazor
 				await ValueChanged.InvokeAsync(null!);
 			}
 
-			await FilterDebounced(50);
+            await ClearSelectedValue();
+            await FilterDebounced(50);
 		}
+
+		private ValueTask ClearSelectedValue()
+		{
+            foreach (var item in SearchItems.Where(i => i.IsSelected))
+            {
+                item.IsSelected = false;
+            }
+
+            return default;
+        }
 
 		private bool ShouldItemShow(bool isMatch, int showingIndex)
 		{

@@ -33,25 +33,25 @@ namespace ZBlazor
 
 		bool preventKeyDownDefault = false;
 
-        string lastInputValue = "";
+		string lastInputValue = "";
 
-        /// <summary>
-        /// True when the search items are loading.
-        /// </summary>
-        public bool IsLoading { get; private set; }
+		/// <summary>
+		/// True when the search items are loading.
+		/// </summary>
+		public bool IsLoading { get; private set; }
 
 		int previousCycleDataCount = 0;
 
-        bool hasLoaded;
+		bool hasLoaded;
 
-        #endregion FIELDS
+		#endregion FIELDS
 
-        #region PARAMETERS
+		#region PARAMETERS
 
-        /// <summary>
-        /// The actual value of the input.
-        /// </summary>
-        [Parameter] public string? InputValue { get; set; } = "";
+		/// <summary>
+		/// The actual value of the input.
+		/// </summary>
+		[Parameter] public string? InputValue { get; set; } = "";
 
 		/// <summary>
 		/// The collection of items to list as options in the <see cref="QuickInput{TItem}"/>.
@@ -247,8 +247,8 @@ namespace ZBlazor
 
 		#region LIFECYCLE
 
-        /// <inheritdoc/>
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+		/// <inheritdoc/>
+		protected override async Task OnAfterRenderAsync(bool firstRender)
 		{
 			var currentCycleDataCount = Data?.Count() ?? 0;
 
@@ -259,7 +259,7 @@ namespace ZBlazor
 				await InitializeSearchItems();
 
 				InputValue = await GetInputTextFromValue(Value);
-            }
+			}
 
 			await base.OnAfterRenderAsync(firstRender);
 		}
@@ -274,11 +274,11 @@ namespace ZBlazor
 			await base.OnParametersSetAsync();
 		}
 
-        #endregion LIFECYCLE
+		#endregion LIFECYCLE
 
-        #region EVENTS
+		#region EVENTS
 
-        private async Task OnValueChange(ChangeEventArgs args)
+		private async Task OnValueChange(ChangeEventArgs args)
 		{
 			InputValue = (args.Value as string) ?? "";
 
@@ -291,8 +291,8 @@ namespace ZBlazor
 
 			await FilterDebounced();
 
-            lastInputValue = InputValue;
-        }
+			lastInputValue = InputValue;
+		}
 
 		private async Task OnSelected(SearchItem<TItem>? item)
 		{
@@ -321,26 +321,27 @@ namespace ZBlazor
 				await FilterDebounced();
 			}
 
+			lastInputValue = InputValue;
 			isOpen = false;
 		}
 
 		private async Task OnFocus()
 		{
-			if(!hasLoaded)
+			if (!hasLoaded)
 			{
-                IsLoading = true;
-            }
+				IsLoading = true;
+			}
 
 			if (OpenOnFocus)
 			{
 				isOpen = true;
 			}
 
-            await Task.Delay(1);
+			await Task.Delay(1);
 
-            isFocused = true;
+			isFocused = true;
 
-			if(LazyLoad)
+			if (LazyLoad)
 			{
 				var currentCycleDataCount = Data?.Count() ?? 0;
 
@@ -351,7 +352,7 @@ namespace ZBlazor
 					await InitializeSearchItems();
 				}
 			}
-        }
+		}
 
 		private async Task OnBlur(FocusEventArgs args)
 		{
@@ -361,7 +362,7 @@ namespace ZBlazor
 				if (ChooseItemOnBlur)
 				{
 					await ChooseSelected();
-                }
+				}
 
 				if (!AllowCustomValues &&
 					(string.IsNullOrWhiteSpace(InputValue) || SearchItems.All(i => i.Text != InputValue)))
@@ -384,11 +385,16 @@ namespace ZBlazor
 			}
 
 			isFocused = false;
-        }
+		}
 
 		private async Task OnKeyDown(KeyboardEventArgs args)
 		{
 			preventKeyDownDefault = false;
+
+			if (args.CtrlKey && args.ShiftKey && args.Key == "D")
+			{
+				Logger?.LogWarning("QuickInput Debug: {@Model}", new { InputValue, lastInputValue, SearchItems });
+			}
 
 			switch (args.Code)
 			{
@@ -443,14 +449,13 @@ namespace ZBlazor
 		{
 			var selectedItem = SearchItems.SingleOrDefault(i => i.IsSelected);
 
-			if(selectedItem != null)
+			if (selectedItem != null)
 			{
-                lastInputValue = selectedItem.Text;
-                await OnSelected(selectedItem);
+				await OnSelected(selectedItem);
 			}
 
-            await ClearSelectedValue();
-            await FilterDebounced();
+			await ClearSelectedValue();
+			await FilterDebounced();
 		}
 
 		private void OnMouseDown(MouseEventArgs args)
@@ -502,9 +507,10 @@ namespace ZBlazor
 		private int GetDefaultSelectedItemIndex()
 		{
 			// Never select anything when we have no input and choose on blur/tab
-			if (!hasInputValue && (ChooseItemOnBlur || ChooseItemOnTab)){
-                return 0;
-            }
+			if (!hasInputValue && (ChooseItemOnBlur || ChooseItemOnTab))
+			{
+				return 0;
+			}
 
 			if (SelectFirstMatch)
 			{
@@ -516,16 +522,16 @@ namespace ZBlazor
 
 		private ValueTask Filter(CancellationToken? cancellationToken = null)
 		{
-			if(lastInputValue == InputValue)
+			if (lastInputValue == InputValue)
 			{
-                Logger?.LogDebug("No input change, filtering skipped");
-                return default;
-            }
+				Logger?.LogDebug("No input change, filtering skipped");
+				return default;
+			}
 
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
+			var stopwatch = new Stopwatch();
+			stopwatch.Start();
 
-            selectedItemIndex = -1 + GetDefaultSelectedItemIndex();
+			selectedItemIndex = -1 + GetDefaultSelectedItemIndex();
 
 			string? workingInputValue = InputValue;
 
@@ -536,9 +542,9 @@ namespace ZBlazor
 
 			foreach (var item in SearchItems)
 			{
-                bool wasMatching = item.IsMatch;
+				bool wasMatching = item.IsMatch;
 
-                ClearItem(item);
+				ClearItem(item);
 
 				if (cancellationToken?.IsCancellationRequested ?? false)
 				{
@@ -547,10 +553,10 @@ namespace ZBlazor
 
 				// If current input value starts with our last input value, we only need to evaluate
 				// records that were matches last time
-				if(lastInputValue.Length > 0 && (InputValue?.StartsWith(lastInputValue) ?? false) && !wasMatching)
+				if (lastInputValue.Length > 0 && (InputValue?.StartsWith(lastInputValue) ?? false) && !wasMatching)
 				{
-                    continue;
-                }
+					continue;
+				}
 
 				MatchData match;
 
@@ -620,8 +626,8 @@ namespace ZBlazor
 				}
 			}
 
-            stopwatch.Stop();
-            Logger?.LogDebug("Filtered input in {Elapsed} ms", stopwatch.Elapsed.Milliseconds);
+			stopwatch.Stop();
+			Logger?.LogDebug("Filtered input in {Elapsed} ms", stopwatch.Elapsed.Milliseconds);
 
 			return default;
 		}
@@ -631,9 +637,9 @@ namespace ZBlazor
 		/// </summary>
 		protected virtual List<SearchItem<TItem>> GetOrderedSearchItems()
 		{
-            var take = MaxItemsToShow == 0 ? int.MaxValue : MaxItemsToShow;
+			var take = MaxItemsToShow == 0 ? int.MaxValue : MaxItemsToShow;
 
-            if (!hasInputValue)
+			if (!hasInputValue)
 			{
 				if (RecentRepository != null)
 				{
@@ -718,12 +724,12 @@ namespace ZBlazor
 
 		private async ValueTask InitializeSearchItems()
 		{
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
+			var stopwatch = new Stopwatch();
+			stopwatch.Start();
 
-            IsLoading = true;
+			IsLoading = true;
 
-            await Task.Delay(InitializationDelayMilliseconds);
+			await Task.Delay(InitializationDelayMilliseconds);
 
 			if (Data == null)
 			{
@@ -768,15 +774,15 @@ namespace ZBlazor
 				}
 			}
 
-            stopwatch.Stop();
+			stopwatch.Stop();
 
-            Logger?.LogDebug("Initialized {Count} search items in {Elapsed} ms", SearchItems.Count, stopwatch.Elapsed.Milliseconds);
+			Logger?.LogDebug("Initialized {Count} search items in {Elapsed} ms", SearchItems.Count, stopwatch.Elapsed.Milliseconds);
 
-            await FilterDebounced();
+			await FilterDebounced();
 
 			hasLoaded = true;
-            IsLoading = false;
-        }
+			IsLoading = false;
+		}
 
 		private string GetKeyValueOrDefault(TItem item)
 		{
@@ -813,19 +819,19 @@ namespace ZBlazor
 				await ValueChanged.InvokeAsync(null!);
 			}
 
-            await ClearSelectedValue();
-            await FilterDebounced(50);
-        }
+			await ClearSelectedValue();
+			await FilterDebounced(50);
+		}
 
 		private ValueTask ClearSelectedValue()
 		{
-            foreach (var item in SearchItems.Where(i => i.IsSelected))
-            {
-                item.IsSelected = false;
-            }
+			foreach (var item in SearchItems.Where(i => i.IsSelected))
+			{
+				item.IsSelected = false;
+			}
 
-            return default;
-        }
+			return default;
+		}
 
 		private bool ShouldItemShow(bool isMatch, int showingIndex)
 		{

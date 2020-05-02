@@ -10,6 +10,7 @@ namespace BlazorServer
 		{
 			Log.Logger = new LoggerConfiguration()
 				.WriteTo.Console(Serilog.Events.LogEventLevel.Debug)
+				.MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
 				.MinimumLevel.Debug()
 				.CreateLogger();
 

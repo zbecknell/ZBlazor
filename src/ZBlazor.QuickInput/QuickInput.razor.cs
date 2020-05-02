@@ -501,7 +501,12 @@ namespace ZBlazor
 
 		private int GetDefaultSelectedItemIndex()
 		{
-			if (hasInputValue && SelectFirstMatch)
+			// Never select anything when we have no input and choose on blur/tab
+			if (!hasInputValue && (ChooseItemOnBlur || ChooseItemOnTab)){
+                return 0;
+            }
+
+			if (SelectFirstMatch)
 			{
 				return 1;
 			}

@@ -48,7 +48,25 @@
                 item.ShouldItemShow = false;
             }
 
-            @if (!IsFiltering && hasInputValue && SearchItems.All(i => !i.IsMatch))
+            @if(hasInputValue && IsLoading)
+            {
+                <div class="zb-quick-input-item"
+                     @onclick:preventDefault="true"
+                     @onclick:stopPropagation="true"
+                     @onmousedown:stopPropagation="true"
+                     @onmousedown:preventDefault="true"
+                     @onclick="@(() => isOpen = false)">
+                    @if(LoadingView != null)
+                    {
+                        @LoadingView
+                    }
+                    else
+                    {
+                        <span>Loading...</span>
+                    }
+                </div>
+            }
+            else if (!IsFiltering && hasInputValue && SearchItems.All(i => !i.IsMatch))
             {
                 <div class="zb-quick-input-item"
                      @onclick:preventDefault="true"

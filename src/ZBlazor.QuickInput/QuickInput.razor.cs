@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,14 +33,25 @@ namespace ZBlazor
 
 		bool preventKeyDownDefault = false;
 
-		#endregion FIELDS
+        string lastInputValue = "";
 
-		#region PARAMETERS
+        /// <summary>
+        /// True when the search items are loading.
+        /// </summary>
+        public bool IsLoading { get; private set; }
 
-		/// <summary>
-		/// The actual value of the input.
-		/// </summary>
-		[Parameter] public string? InputValue { get; set; } = "";
+		int previousCycleDataCount = 0;
+
+        bool hasLoaded;
+
+        #endregion FIELDS
+
+        #region PARAMETERS
+
+        /// <summary>
+        /// The actual value of the input.
+        /// </summary>
+        [Parameter] public string? InputValue { get; set; } = "";
 
 		/// <summary>
 		/// The collection of items to list as options in the <see cref="QuickInput{TItem}"/>.
@@ -125,6 +137,11 @@ namespace ZBlazor
 		/// When populated, will display when no input is present.
 		/// </summary>
 		[Parameter] public RenderFragment? NoInputView { get; set; }
+
+		/// <summary>
+		/// When populated, will display when items are loading.
+		/// </summary>
+		[Parameter] public RenderFragment? LoadingView { get; set; }
 
 		/// <summary>
 		/// When populated, the matcher will also check other named fields on <code>TItem</code> for a filter match.
@@ -217,6 +234,11 @@ namespace ZBlazor
 		[Parameter] public bool ChooseItemOnBlur { get; set; }
 
 		/// <summary>
+		/// When true, search items will only populate the element is in focus. Defaults to false.
+		/// </summary>
+		[Parameter] public bool LazyLoad { get; set; }
+
+		/// <summary>
 		/// Any unmatched element attributes to be applied to the input.
 		/// </summary>
 		[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> InputAttributes { get; set; } = new Dictionary<string, object>();
@@ -225,22 +247,19 @@ namespace ZBlazor
 
 		#region LIFECYCLE
 
-		int previousCycleDataCount = 0;
-
-		/// <inheritdoc/>
-		protected override async Task OnAfterRenderAsync(bool firstRender)
+        /// <inheritdoc/>
+        protected override async Task OnAfterRenderAsync(bool firstRender)
 		{
 			var currentCycleDataCount = Data?.Count() ?? 0;
 
 			// TODO: this has a bug if the data were to be replaced with a different set with the same number of items
-			if (previousCycleDataCount != currentCycleDataCount)
+			if ((hasLoaded || !LazyLoad) && previousCycleDataCount != currentCycleDataCount)
 			{
+				previousCycleDataCount = currentCycleDataCount;
 				await InitializeSearchItems();
 
-				previousCycleDataCount = currentCycleDataCount;
-
 				InputValue = await GetInputTextFromValue(Value);
-			}
+            }
 
 			await base.OnAfterRenderAsync(firstRender);
 		}
@@ -257,9 +276,9 @@ namespace ZBlazor
 
         #endregion LIFECYCLE
 
-		#region EVENTS
+        #region EVENTS
 
-		private async Task OnValueChange(ChangeEventArgs args)
+        private async Task OnValueChange(ChangeEventArgs args)
 		{
 			InputValue = (args.Value as string) ?? "";
 
@@ -271,7 +290,9 @@ namespace ZBlazor
 			isOpen = OpenOnFocus || hasInputValue;
 
 			await FilterDebounced();
-		}
+
+            lastInputValue = InputValue;
+        }
 
 		private async Task OnSelected(SearchItem<TItem>? item)
 		{
@@ -303,14 +324,33 @@ namespace ZBlazor
 			isOpen = false;
 		}
 
-		private void OnFocus(FocusEventArgs args)
+		private async Task OnFocus()
 		{
+			if(!hasLoaded)
+			{
+                IsLoading = true;
+            }
+
 			if (OpenOnFocus)
 			{
 				isOpen = true;
 			}
 
-			isFocused = true;
+            await Task.Delay(1);
+
+            isFocused = true;
+
+			if(LazyLoad)
+			{
+				var currentCycleDataCount = Data?.Count() ?? 0;
+
+				// TODO: this has a bug if the data were to be replaced with a different set with the same number of items
+				if (previousCycleDataCount != currentCycleDataCount)
+				{
+					previousCycleDataCount = currentCycleDataCount;
+					await InitializeSearchItems();
+				}
+			}
         }
 
 		private async Task OnBlur(FocusEventArgs args)
@@ -399,13 +439,14 @@ namespace ZBlazor
 			}
 		}
 
-		private async Task ChooseSelected()
+		private async ValueTask ChooseSelected()
 		{
 			var selectedItem = SearchItems.SingleOrDefault(i => i.IsSelected);
 
 			if(selectedItem != null)
 			{
-				await OnSelected(selectedItem);
+                lastInputValue = selectedItem.Text;
+                await OnSelected(selectedItem);
 			}
 
             await ClearSelectedValue();
@@ -470,9 +511,16 @@ namespace ZBlazor
 
 		private ValueTask Filter(CancellationToken? cancellationToken = null)
 		{
-			Logger?.LogDebug("Filtering {InputValue}", InputValue);
+			if(lastInputValue == InputValue)
+			{
+                Logger?.LogDebug("No input change, filtering skipped");
+                return default;
+            }
 
-			selectedItemIndex = -1 + GetDefaultSelectedItemIndex();
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            selectedItemIndex = -1 + GetDefaultSelectedItemIndex();
 
 			string? workingInputValue = InputValue;
 
@@ -483,12 +531,21 @@ namespace ZBlazor
 
 			foreach (var item in SearchItems)
 			{
-				ClearItem(item);
+                bool wasMatching = item.IsMatch;
+
+                ClearItem(item);
 
 				if (cancellationToken?.IsCancellationRequested ?? false)
 				{
 					return default;
 				}
+
+				// If current input value starts with our last input value, we only need to evaluate
+				// records that were matches last time
+				if(lastInputValue.Length > 0 && (InputValue?.StartsWith(lastInputValue) ?? false) && !wasMatching)
+				{
+                    continue;
+                }
 
 				MatchData match;
 
@@ -503,11 +560,6 @@ namespace ZBlazor
 				else
 				{
 					match = _fuzzyMatcher.Match(workingInputValue ?? "", item.Text);
-				}
-
-				if (match.Score > 0)
-				{
-					Logger?.LogDebug("Match: {@Match}", match);
 				}
 
 				item.Matches = match.Matches;
@@ -562,6 +614,9 @@ namespace ZBlazor
 					}
 				}
 			}
+
+            stopwatch.Stop();
+            Logger?.LogDebug("Filtered input in {Elapsed} ms", stopwatch.Elapsed.Milliseconds);
 
 			return default;
 		}
@@ -656,9 +711,14 @@ namespace ZBlazor
 			}
 		}
 
-		private async Task InitializeSearchItems()
+		private async ValueTask InitializeSearchItems()
 		{
-			await Task.Delay(InitializationDelayMilliseconds);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            IsLoading = true;
+
+            await Task.Delay(InitializationDelayMilliseconds);
 
 			if (Data == null)
 			{
@@ -703,8 +763,15 @@ namespace ZBlazor
 				}
 			}
 
-			await FilterDebounced();
-		}
+            stopwatch.Stop();
+
+            Logger?.LogDebug("Initialized {Count} search items in {Elapsed} ms", SearchItems.Count, stopwatch.Elapsed.Milliseconds);
+
+            await FilterDebounced();
+
+			hasLoaded = true;
+            IsLoading = false;
+        }
 
 		private string GetKeyValueOrDefault(TItem item)
 		{
@@ -743,7 +810,7 @@ namespace ZBlazor
 
             await ClearSelectedValue();
             await FilterDebounced(50);
-		}
+        }
 
 		private ValueTask ClearSelectedValue()
 		{

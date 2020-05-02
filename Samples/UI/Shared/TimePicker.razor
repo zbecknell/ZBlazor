@@ -12,6 +12,7 @@
             InputValueFilter="FilterInputValue"
             disabled="@(!Enabled)"
             ChooseItemOnBlur="true"
+            LazyLoad="true"
             AllowCustomValues="false">
     <NoResultsView>
         @if (MinTime == null && MaxTime == null)
@@ -34,6 +35,9 @@
             }
         }
     </NoResultsView>
+    <NoInputView>
+        Type a time
+    </NoInputView>
 </QuickInput>
 
 @code {

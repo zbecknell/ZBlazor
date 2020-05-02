@@ -278,7 +278,10 @@ namespace ZBlazor
 
 		#region EVENTS
 
-		private async Task OnValueChange(ChangeEventArgs args)
+		private Task OnValueChange(ChangeEventArgs args)
+			=> FireValueChange(args);
+
+		private async Task FireValueChange(ChangeEventArgs args, bool fromSelected = false)
 		{
 			InputValue = (args.Value as string) ?? "";
 
@@ -292,6 +295,7 @@ namespace ZBlazor
 			await FilterDebounced();
 
 			lastInputValue = InputValue;
+
 		}
 
 		private async Task OnSelected(SearchItem<TItem>? item)
@@ -316,12 +320,9 @@ namespace ZBlazor
 			{
 				await ClearInputValue();
 			}
-			else
-			{
-				await FilterDebounced();
-			}
 
-			lastInputValue = InputValue;
+			await FireValueChange(new ChangeEventArgs { Value = InputValue }, true);
+
 			isOpen = false;
 		}
 
@@ -393,7 +394,7 @@ namespace ZBlazor
 
 			if (args.CtrlKey && args.ShiftKey && args.Key == "D")
 			{
-				Logger?.LogWarning("QuickInput Debug: {@Model}", new { InputValue, lastInputValue, SearchItems });
+				Logger?.LogWarning("QuickInput Debug: {@Model}", new { InputValue, lastInputValue, Matches = SearchItems.Where(i => i.IsMatch) });
 			}
 
 			switch (args.Code)

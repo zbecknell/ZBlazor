@@ -255,7 +255,7 @@ namespace ZBlazor
 			await base.OnParametersSetAsync();
 		}
 
-		#endregion LIFECYCLE
+        #endregion LIFECYCLE
 
 		#region EVENTS
 
@@ -311,7 +311,7 @@ namespace ZBlazor
 			}
 
 			isFocused = true;
-		}
+        }
 
 		private async Task OnBlur(FocusEventArgs args)
 		{
@@ -321,8 +321,6 @@ namespace ZBlazor
 				if (ChooseItemOnBlur)
 				{
 					await ChooseSelected();
-                    // isFocused = false;
-                    //return;
                 }
 
 				if (!AllowCustomValues &&
@@ -346,7 +344,7 @@ namespace ZBlazor
 			}
 
 			isFocused = false;
-		}
+        }
 
 		private async Task OnKeyDown(KeyboardEventArgs args)
 		{
@@ -573,11 +571,16 @@ namespace ZBlazor
 		/// </summary>
 		protected virtual List<SearchItem<TItem>> GetOrderedSearchItems()
 		{
-			if (!hasInputValue)
+            var take = MaxItemsToShow == 0 ? int.MaxValue : MaxItemsToShow;
+
+            if (!hasInputValue)
 			{
 				if (RecentRepository != null)
 				{
-					return SearchItems.OrderByDescending(i => i.LastHit).ToList();
+					return SearchItems
+						.OrderByDescending(i => i.LastHit)
+						.Take(take)
+						.ToList();
 				}
 
 				return SearchItems;
@@ -587,7 +590,8 @@ namespace ZBlazor
 
 			if (PrioritizeShorterValues)
 			{
-				ordered = SearchItems.OrderBy(i => i.Text.Length);
+				ordered = SearchItems
+					.OrderBy(i => i.Text.Length);
 			}
 
 			if (PrioritizePrimaryMatch)
@@ -606,11 +610,17 @@ namespace ZBlazor
 
 			if (PrioritizePrimaryMatch || PrioritizeShorterValues)
 			{
-				return ordered.ThenByDescending(i => i.Score).ToList();
+				return ordered
+					.ThenByDescending(i => i.Score)
+					.Take(take)
+					.ToList();
 			}
 			else
 			{
-				return SearchItems.OrderByDescending(i => i.Score).ToList();
+				return SearchItems
+				.OrderByDescending(i => i.Score)
+				.Take(take)
+				.ToList();
 			}
 		}
 

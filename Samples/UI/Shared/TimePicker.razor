@@ -105,6 +105,12 @@
 
     void PopulateAvailableTimes()
     {
+        if(Interval.Minutes == 1 && MinTime == null && MaxTime == null)
+        {
+            Times = AllTimes;
+            return;
+        }
+
         Times = AllTimes
             .Where(t => t.Value.Minute % Interval.Minutes == 0
                 && t.Value >= (MinTime ?? DateTime.MinValue)

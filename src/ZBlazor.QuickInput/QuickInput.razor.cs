@@ -238,6 +238,13 @@ namespace ZBlazor
 		/// </summary>
 		[Parameter] public bool LazyLoad { get; set; }
 
+
+		// TODO: fix
+		/// <summary>
+		/// When present, the base list of search items will be filtered by this predicate. Caution may not work yet!
+		/// </summary>
+		[Parameter] public Func<SearchItem<TItem>, bool> FilterPredicate { get; set; } = (i) => true;
+
 		/// <summary>
 		/// Any unmatched element attributes to be applied to the input.
 		/// </summary>
@@ -394,7 +401,7 @@ namespace ZBlazor
 
 			if (args.CtrlKey && args.ShiftKey && args.Key == "D")
 			{
-				Logger?.LogWarning("QuickInput Debug: {@Model}", new { InputValue, lastInputValue, Matches = SearchItems.Where(i => i.IsMatch) });
+				Logger?.LogWarning("QuickInput Debug: {@Model}", new { InputValue, lastInputValue, Matches = SearchItems.Where(i => i.IsMatch), FilteredInputValue = InputValueFilter(InputValue), hasInputValue, isOpen, IsLoading, IsFiltering, Showing = SearchItems.Count(i => i.ShouldItemShow) });
 			}
 
 			switch (args.Code)
@@ -482,7 +489,7 @@ namespace ZBlazor
 
 		CancellationTokenSource? currentSearchCts;
 
-		private async ValueTask FilterDebounced(int? debounceMilliseconds = null)
+		private async ValueTask FilterDebounced(int? debounceMilliseconds = null, bool forceRefresh = false)
 		{
 			try
 			{
@@ -494,7 +501,7 @@ namespace ZBlazor
 				await Task.Delay(debounceMilliseconds ?? DebounceMilliseconds);
 				if (!cancellationToken.IsCancellationRequested)
 				{
-					await Filter(cancellationToken);
+					await Filter(cancellationToken, forceRefresh);
 					currentSearchCts = null;
 				}
 			}
@@ -521,9 +528,9 @@ namespace ZBlazor
 			return 0;
 		}
 
-		private ValueTask Filter(CancellationToken? cancellationToken = null)
+		private ValueTask Filter(CancellationToken? cancellationToken = null, bool forceRefresh = false)
 		{
-			if (lastInputValue == InputValue)
+			if (!forceRefresh && lastInputValue == InputValue)
 			{
 				Logger?.LogDebug("No input change, filtering skipped");
 				return default;
@@ -554,7 +561,7 @@ namespace ZBlazor
 
 				// If current input value starts with our last input value, we only need to evaluate
 				// records that were matches last time
-				if (lastInputValue.Length > 0 && (InputValue?.StartsWith(lastInputValue) ?? false) && !wasMatching)
+				if (!forceRefresh && lastInputValue.Length > 0 && (InputValue?.StartsWith(lastInputValue) ?? false) && !wasMatching)
 				{
 					continue;
 				}
@@ -628,7 +635,7 @@ namespace ZBlazor
 			}
 
 			stopwatch.Stop();
-			Logger?.LogDebug("Filtered input in {Elapsed} ms", stopwatch.Elapsed.Milliseconds);
+			Logger?.LogDebug("Filtered input in {Elapsed} ms with {Matches} matches", stopwatch.Elapsed.Milliseconds, SearchItems.Count(i => i.IsMatch));
 
 			return default;
 		}
@@ -646,6 +653,7 @@ namespace ZBlazor
 				{
 					return SearchItems
 						.OrderByDescending(i => i.LastHit)
+						.Where(FilterPredicate)
 						.Take(take)
 						.ToList();
 				}
@@ -679,6 +687,8 @@ namespace ZBlazor
 			{
 				return ordered
 					.ThenByDescending(i => i.Score)
+					.Where(i => i.IsMatch)
+					.Where(FilterPredicate)
 					.Take(take)
 					.ToList();
 			}
@@ -686,6 +696,8 @@ namespace ZBlazor
 			{
 				return SearchItems
 				.OrderByDescending(i => i.Score)
+				.Where(i => i.IsMatch)
+				.Where(FilterPredicate)
 				.Take(take)
 				.ToList();
 			}
@@ -728,7 +740,10 @@ namespace ZBlazor
 			var stopwatch = new Stopwatch();
 			stopwatch.Start();
 
-			IsLoading = true;
+			if (!hasLoaded)
+			{
+				IsLoading = true;
+			}
 
 			await Task.Delay(InitializationDelayMilliseconds);
 
@@ -779,7 +794,7 @@ namespace ZBlazor
 
 			Logger?.LogDebug("Initialized {Count} search items in {Elapsed} ms", SearchItems.Count, stopwatch.Elapsed.Milliseconds);
 
-			await FilterDebounced();
+			await FilterDebounced(forceRefresh: true);
 
 			hasLoaded = true;
 			IsLoading = false;

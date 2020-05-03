@@ -102,17 +102,8 @@
                 foreach (var item in GetOrderedSearchItems())
                 {
                     {
-                        item.ShouldItemShow = ShouldItemShow(item.IsMatch, showingIndex);
-
-                        if (item.ShouldItemShow)
-                        {
-                            item.IsSelected = showingIndex == selectedItemIndex;
-                            showingIndex += 1;
-                        }
-                        else
-                        {
-                            break;
-                        }
+                        item.IsSelected = showingIndex == selectedItemIndex;
+                        showingIndex += 1;
                     }
 
                     <div @key="item.Key"

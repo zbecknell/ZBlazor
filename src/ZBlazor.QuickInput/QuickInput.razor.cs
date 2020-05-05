@@ -303,6 +303,10 @@ namespace ZBlazor
 
 			lastInputValue = InputValue;
 
+			if (InputValue == "" && ValueChanged.HasDelegate)
+			{
+				await ValueChanged.InvokeAsync(null);
+			}
 		}
 
 		private async Task OnSelected(SearchItem<TItem>? item)

@@ -405,13 +405,25 @@ namespace ZBlazor
 
 			if (args.CtrlKey && args.ShiftKey && args.Key == "D")
 			{
-				Logger?.LogWarning("QuickInput Debug: {@Model}", new { InputValue, lastInputValue, Matches = SearchItems.Where(i => i.IsMatch), FilteredInputValue = InputValueFilter(InputValue), hasInputValue, isOpen, IsLoading, IsFiltering, Showing = SearchItems.Count(i => i.ShouldItemShow) });
+				Logger?.LogWarning("QuickInput Debug: {@Model}", new
+				{
+					InputValue,
+					lastInputValue,
+					Matches = SearchItems.Where(i => i.IsMatch),
+					FilteredInputValue = (InputValueFilter != null ? InputValueFilter(InputValue) : null),
+					hasInputValue,
+					isOpen,
+					IsLoading,
+					IsFiltering,
+					selectedItemIndex,
+					Showing = SearchItems.Count(i => i.ShouldItemShow)
+				});
 			}
 
 			switch (args.Code)
 			{
 				case "ArrowDown":
-					if (selectedItemIndex + 1 >= SearchItems.Where(i => i.ShouldItemShow).Count())
+					if (selectedItemIndex + 1 >= actualShowingItems)
 					{
 						selectedItemIndex = 0;
 					}
@@ -424,7 +436,7 @@ namespace ZBlazor
 				case "ArrowUp":
 					if (selectedItemIndex - 1 <= -1)
 					{
-						selectedItemIndex = SearchItems.Where(i => i.ShouldItemShow).Count() - 1;
+						selectedItemIndex = actualShowingItems - 1;
 					}
 					else
 					{
@@ -644,25 +656,37 @@ namespace ZBlazor
 			return default;
 		}
 
+		int actualShowingItems;
+
 		/// <summary>
 		/// Gets the propertly ordered list of search items.
 		/// </summary>
 		protected virtual List<SearchItem<TItem>> GetOrderedSearchItems()
 		{
-			var take = MaxItemsToShow == 0 ? int.MaxValue : MaxItemsToShow;
+			var result = new List<SearchItem<TItem>>();
+
+			int actualItemsToShow = MaxItemsToShow == 0 ? SearchItems.Count : MaxItemsToShow;
 
 			if (!hasInputValue)
 			{
 				if (RecentRepository != null)
 				{
-					return SearchItems
+					result = SearchItems
 						.OrderByDescending(i => i.LastHit)
 						.Where(FilterPredicate)
-						.Take(take)
+						.Take(actualItemsToShow)
+						.ToList();
+				}
+				else
+				{
+					result = SearchItems
+						.Take(actualItemsToShow)
 						.ToList();
 				}
 
-				return SearchItems;
+				actualShowingItems = result.Count;
+
+				return result;
 			}
 
 			IOrderedEnumerable<SearchItem<TItem>> ordered = null!;
@@ -689,22 +713,26 @@ namespace ZBlazor
 
 			if (PrioritizePrimaryMatch || PrioritizeShorterValues)
 			{
-				return ordered
+				result = ordered
 					.ThenByDescending(i => i.Score)
 					.Where(i => i.IsMatch)
 					.Where(FilterPredicate)
-					.Take(take)
+					.Take(actualItemsToShow)
 					.ToList();
 			}
 			else
 			{
-				return SearchItems
+				result = SearchItems
 				.OrderByDescending(i => i.Score)
 				.Where(i => i.IsMatch)
 				.Where(FilterPredicate)
-				.Take(take)
+				.Take(actualItemsToShow)
 				.ToList();
 			}
+
+			actualShowingItems = result.Count;
+
+			return result;
 		}
 
 		private void ClearItem(SearchItem<TItem> item)

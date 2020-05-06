@@ -123,7 +123,34 @@
 
     string? FilterInputValue(string? value)
     {
-        // What are we doing?
+        if (value == null)
+        {
+            return null;
+        }
+
+        if (value.Length == 1 && char.IsDigit(value[0]))
+        {
+            return $"{value}:00";
+        }
+
+        // If we're in a certain range, we want to give special priority for things like 10p 11p 12p so they don't default to 1:0p
+        if ((value.StartsWith("10") || value.StartsWith("11") || value.StartsWith("12")) && (value.Length > 2 && value.Length < 6))
+        {
+            if (value[2] == ':')
+            {
+                return value;
+            }
+
+            // 10p
+            // 10 p
+            //   ^
+            if (!char.IsDigit(value[2]))
+            {
+                return value.Insert(2, ":");
+            }
+        }
+
+        // What are we doing? Issue brought up by Gwen:
         // When a user enters 1:25 AM and backs out to do 1:250
         // we want to be nice to the user and ignore the : in this instance
         // so they can match to 12:50

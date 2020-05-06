@@ -301,7 +301,7 @@ namespace ZBlazor
 
 			await FilterDebounced();
 
-			lastInputValue = InputValue;
+			lastInputValue = (InputValueFilter != null ? InputValueFilter(InputValue) : InputValue)!;
 
 			if (InputValue == "" && ValueChanged.HasDelegate)
 			{

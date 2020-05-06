@@ -1,0 +1,244 @@
+﻿<div class="form-row">
+    <div class="col-md-3 mb-1">
+        <QuickInput Data="days"
+                    TItem="Day"
+                    FilterType="FilterType.StartsWith"
+                    ChooseItemOnBlur="true"
+                    MaxItemsToShow="0"
+                    OtherMatchFields="@(new string[] { nameof(Day.LongNumber) })"
+                    ValueChanged="OnDayChange"
+                    Value="day"
+                    placeholder="Day"
+                    inputmode="numeric"
+                    Width="100%"
+                    ShowOtherMatches="false" />
+    </div>
+    <div class="col-md-5 mb-1">
+        <QuickInput Data="months"
+                    TItem="Month"
+                    FilterType="FilterType.StartsWith"
+                    ChooseItemOnBlur="true"
+                    MaxItemsToShow="0"
+                    ValueChanged="OnMonthChange"
+                    Value="month"
+                    placeholder="Month"
+                    inputmode="numeric"
+                    Width="100%"
+                    OtherMatchFields="@(new string[] { nameof(Month.Number), nameof(Month.FullName), nameof(Month.LongNumber) })"
+                    ShowOtherMatches="false" />
+    </div>
+    <div class="col-md-4 mb-1">
+        <QuickInput Data="years"
+                    TItem="Year"
+                    FilterType="FilterType.StartsWith"
+                    ChooseItemOnBlur="true"
+                    MaxItemsToShow="10"
+                    placeholder="Year"
+                    inputmode="numeric"
+                    Width="100%"
+                    Value="year"
+                    ValueChanged="OnYearChange" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public DateTime? Value { get; set; }
+    [Parameter] public EventCallback<DateTime?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// Clears all three inputs.
+    /// </summary>
+    public Task ClearInputs()
+    {
+        day = null;
+        month = null;
+        year = null;
+
+        return Task.CompletedTask;
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+
+        if (Value != null)
+        {
+            day = days.FirstOrDefault(d => d.Number == Value?.Day);
+            month = months.FirstOrDefault(m => m.Number == Value?.Month);
+            year = years.FirstOrDefault(y => y.Number == Value?.Year);
+        }
+        else if (day != null && month != null && year != null)
+        {
+            // If we have input and we're getting a null value, must mean we need to clear out
+            day = null;
+            month = null;
+            year = null;
+        }
+
+        days = GetDayList(month, year);
+
+        return base.OnParametersSetAsync();
+    }
+
+    async Task OnValueChange()
+    {
+        if (month != null && year != null)
+        {
+            int daysInMonth = DateTime.DaysInMonth(year.Number, month.Number);
+
+            if (day?.Number > daysInMonth)
+            {
+                day = null;
+                days = GetDayList(month, year);
+            }
+        }
+        else if (month != null)
+        {
+            int maxDaysInMonth = month.MaxDays;
+
+            if (day?.Number > maxDaysInMonth)
+            {
+                day = null;
+                days = GetDayList(month);
+            }
+        }
+
+        if (day != null && month != null && year != null)
+        {
+            Value = new DateTime(year.Number, month.Number, day.Number);
+        }
+        else
+        {
+            Value = null;
+        }
+
+        if (ValueChanged.HasDelegate)
+        {
+            await ValueChanged.InvokeAsync(Value);
+        }
+    }
+
+    List<Day> days = GetDayList(null, null);
+    List<Month> months = new List<Month>
+{
+        new Month("Jan (1)", 1, "January", 31),
+        new Month("Feb (2)", 2, "February", 29),
+        new Month("Mar (3)", 3, "March", 31),
+        new Month("Apr (4)", 4, "April", 30),
+        new Month("May (5)", 5, "May", 31),
+        new Month("Jun (6)", 6, "June", 30),
+        new Month("Jul (7)", 7, "July", 31),
+        new Month("Aug (8)", 8, "August", 31),
+        new Month("Sep (9)", 9, "September", 30),
+        new Month("Oct (10)", 10, "October", 31),
+        new Month("Nov (11)", 11, "November", 30),
+        new Month("Dec (12)", 12, "December", 31)
+    };
+    List<Year> years = GetYearList();
+
+    static List<Day> GetDayList(Month? month, Year? year = null)
+    {
+        var list = new List<Day>();
+
+        int daysAvailable = 31;
+
+        if (month != null && year != null)
+        {
+            daysAvailable = DateTime.DaysInMonth(year.Number, month.Number);
+        }
+        else if (month != null)
+        {
+            daysAvailable = month.MaxDays;
+        }
+
+        for (int i = 1; i <= daysAvailable; i++)
+        {
+            list.Add(new Day(i));
+        }
+
+        return list;
+    }
+
+    static List<Year> GetYearList()
+    {
+        var list = new List<Year>();
+
+        // First get this year back to 1900, in descending order
+        for (int i = DateTime.Now.Year; i >= 1900; i--)
+        {
+            list.Add(new Year(i));
+        }
+
+        // Then get the future years from present to plus 10 years
+        for (int i = DateTime.Now.Year + 1; i <= DateTime.Now.Year + 10; i++)
+        {
+            list.Add(new Year(i));
+        }
+
+        return list;
+    }
+
+    Day? day;
+    Month? month;
+    Year? year;
+
+    async Task OnDayChange(Day? value)
+    {
+        day = value;
+
+        await OnValueChange();
+    }
+
+    async Task OnMonthChange(Month? value)
+    {
+        month = value;
+
+        await OnValueChange();
+    }
+
+    async Task OnYearChange(Year? value)
+    {
+        year = value;
+
+        await OnValueChange();
+    }
+
+    class Day
+    {
+        public Day(int number)
+        {
+            Number = number;
+        }
+
+        public string Text => Number.ToString();
+        public int Number { get; set; }
+        public string LongNumber => Number.ToString("00");
+    }
+
+    class Month
+    {
+        public Month(string text, int number, string fullName, int maxDays)
+        {
+            Text = text;
+            Number = number;
+            FullName = fullName;
+            MaxDays = maxDays;
+        }
+
+        public string Text { get; set; } = null!;
+        public int Number { get; set; }
+        public string LongNumber => Number.ToString("00");
+        public string FullName { get; set; } = null!;
+        public int MaxDays { get; private set; }
+    }
+
+    class Year
+    {
+        public Year(int number)
+        {
+            Number = number;
+        }
+
+        public string Text => Number.ToString();
+        public int Number { get; set; }
+    }
+}

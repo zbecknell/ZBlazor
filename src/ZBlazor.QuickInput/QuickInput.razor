@@ -8,8 +8,6 @@
            @attributes="InputAttributes"
            @oninput="OnValueChange"
            @onkeydown="OnKeyDown"
-           @onkeydown:preventDefault="preventKeyDownDefault"
-           @onkeydown:stopPropagation="preventKeyDownDefault"
            @onfocus="OnFocus"
            @onblur="OnBlur"
            @onmousedown="OnMouseDown"
@@ -103,11 +101,10 @@
                 {
                     {
                         item.IsSelected = showingIndex == selectedItemIndex;
-                        showingIndex += 1;
                     }
 
                     <div @key="item.Key"
-                         class="@($"zb-quick-input-item {(item.IsSelected ? "zb-quick-input-active" : "")}  {(item.LastHit != null ? "zb-quick-input-item-recent" : "")}")"
+                         class="@($"zb-quick-input-item {(showingIndex == selectedItemIndex ? "zb-quick-input-active" : "")}  {(item.LastHit != null ? "zb-quick-input-item-recent" : "")}")"
                          @onclick="@(async () => await OnSelected(item))">
                         @if (ItemTemplate != null)
                         {
@@ -118,6 +115,10 @@
                             @item.GetDisplayText(HighlightMatches, ShowOtherMatches)
                         }
                     </div>
+
+                    {
+                        showingIndex += 1;
+                    }
                 }
             }
         </div>

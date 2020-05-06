@@ -20,35 +20,6 @@
                 AllowCustomValues="allowCustomInputValue" />
 </div>
 
-
-<div>
-    <QuickInput placeholder="Enter a rating"
-                Data="Ratings"
-                Class="form-control"
-                MaxItemsToShow="maxItemsToShow"
-                TItem="RatingItem"
-                Value="ratingValue"
-                ValueChanged="OnRatingSelected"
-                HighlightMatches="highlightMatches"
-                SelectFirstMatch="selectFirstMatch"
-                ShowClearButton="showClearButton"
-                OpenOnFocus="openOnFocus"
-                ClearOnEscape="clearOnEscape"
-                ClearAfterSelection="clearAfterSelection"
-                OtherMatchFields="@(new[] { "Rating" })"
-                ShowOtherMatches="true"
-                AllowCustomValues="allowCustomInputValue">
-        <ItemTemplate>
-            <strong>Rating:</strong> @context.GetDisplayText(showOtherMatches: showOtherMatches)
-        </ItemTemplate>
-        <NoInputView>
-            Start typing a rating!
-        </NoInputView>
-        <NoResultsView>Nothing to see here!</NoResultsView>
-    </QuickInput>
-</div>
-
-
 <hr />
 
 <label>Current Value:</label> @inputValue
@@ -114,8 +85,7 @@
 </div>
 
 @code {
-    string inputValue = "UserAlien";
-    RatingItem ratingValue = null!;
+    string inputValue = "";
     bool openOnFocus = true;
     bool highlightMatches = true;
     bool selectFirstMatch = true;
@@ -130,48 +100,9 @@
 
     string[] iconNames = Enum.GetNames(typeof(IconName));
 
-    string[] countries = null!;
-
-    RatingItem[] Ratings = new[]
-    {
-        new RatingItem("Very good", 5001),
-        new RatingItem("Good", 4002),
-        new RatingItem("Fair", 300303),
-        new RatingItem("Poor", 200404),
-        new RatingItem("Very poor", 100507)
-    };
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            countries = TestData.CountryNames;
-            ratingValue = Ratings[1];
-            StateHasChanged();
-        }
-    }
-
     void OnItemSelected(string text)
     {
         selectedItems.Add(text);
         inputValue = text;
-    }
-
-    void OnRatingSelected(RatingItem? rating)
-    {
-        selectedItems.Add(rating?.Text);
-        ratingValue = rating!;
-    }
-
-    class RatingItem
-    {
-        public RatingItem(string text, int rating)
-        {
-            Text = text;
-            Rating = rating;
-        }
-
-        public string Text { get; set; } = null!;
-        public int Rating { get; set; }
     }
 }

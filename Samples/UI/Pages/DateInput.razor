@@ -1,0 +1,35 @@
+﻿@page "/date-input"
+
+<h5>Date Input <small><BSBadge Color="Color.Warning">prototype</BSBadge></small></h5>
+
+<p>
+    <div style="width: 300px">
+        <UI.Shared.DateInput @ref="dateInput" @bind-Value="date" />
+    </div>
+    <small>Current Value: @date?.ToString("d")</small>
+</p>
+<p>
+    <button class="btn btn-danger" @onclick="ClearDateValue">Clear Value</button>
+</p>
+<p>
+    <button class="btn btn-primary" @onclick="SetToY2K">Set To Y2K</button>
+</p>
+
+@code {
+    UI.Shared.DateInput dateInput = null!;
+    DateTime? date;
+    bool enabled = true;
+
+    Task ClearDateValue()
+    {
+        date = null;
+        dateInput.ClearInputs();
+        return Task.CompletedTask;
+    }
+
+    Task SetToY2K()
+    {
+        date = new DateTime(2000, 1, 1);
+        return Task.CompletedTask;
+    }
+}

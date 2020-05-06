@@ -31,8 +31,6 @@ namespace ZBlazor
 
 		[Inject] private ILogger<QuickInput<TItem>>? Logger { get; set; }
 
-		bool preventKeyDownDefault = false;
-
 		string lastInputValue = "";
 
 		/// <summary>
@@ -254,6 +252,52 @@ namespace ZBlazor
 
 		#region LIFECYCLE
 
+		/*
+
+		https://blazor-university.com/components/component-lifecycles/
+
+						SetParametersAsync
+						|
+						OnInitialized/Async
+						|
+						|---> Initialize child components
+						|
+			 Events---> OnParametersSet/Async---
+						                       |
+						                       StateHasChanged <---Events
+										       |
+					    ------------------------
+						|
+						OnAfterRender/Async
+
+		*/
+
+		/// <inheritdoc/>
+		protected override async Task OnParametersSetAsync()
+		{
+			InputValue = await GetInputTextFromValue(Value);
+
+			Logger?.LogDebug("OnParametersSet: {InputValue}", InputValue);
+
+			if (!string.IsNullOrWhiteSpace(InputValue))
+			{
+				lastInputValue = "";
+				await FilterDebounced();
+			}
+			else
+			{
+				Logger?.LogDebug("OnParametersSet: Clearing any matches");
+				foreach (var item in SearchItems.Where(i => i.IsMatch))
+				{
+					item.Matches = null;
+				}
+			}
+
+			selectedItemIndex = -1 + GetDefaultSelectedItemIndex();
+
+			await base.OnParametersSetAsync();
+		}
+
 		/// <inheritdoc/>
 		protected override async Task OnAfterRenderAsync(bool firstRender)
 		{
@@ -271,19 +315,43 @@ namespace ZBlazor
 			await base.OnAfterRenderAsync(firstRender);
 		}
 
-		/// <inheritdoc/>
-		protected override async Task OnParametersSetAsync()
-		{
-			selectedItemIndex = -1 + GetDefaultSelectedItemIndex();
-
-			InputValue = await GetInputTextFromValue(Value);
-
-			await base.OnParametersSetAsync();
-		}
-
 		#endregion LIFECYCLE
 
 		#region EVENTS
+
+		private async Task OnSelected(SearchItem<TItem>? item)
+		{
+			Logger?.LogDebug("Item selected: {@Item}", item);
+
+			lastSelectedItem = item;
+			//InputValue = item?.Text ?? "";
+
+			Value = item?.DataObject;
+
+			if (RecentRepository != null && item != null)
+			{
+				Logger?.LogDebug("Item hit added to recent repository");
+				await RecentRepository.AddHit(item.Key);
+				item.LastHit = DateTime.Now;
+			}
+
+			if (ValueChanged.HasDelegate)
+			{
+				await ValueChanged.InvokeAsync(item?.DataObject);
+			}
+
+			if (ClearAfterSelection)
+			{
+				Logger?.LogDebug("Clearing input after selection");
+				await ClearInputValue();
+			}
+			else
+			{
+				await FireValueChange(new ChangeEventArgs { Value = item?.Text ?? "" }, true);
+			}
+
+			isOpen = false;
+		}
 
 		private Task OnValueChange(ChangeEventArgs args)
 			=> FireValueChange(args);
@@ -309,32 +377,25 @@ namespace ZBlazor
 			}
 		}
 
-		private async Task OnSelected(SearchItem<TItem>? item)
+		private async ValueTask ClearInputValue()
 		{
-			lastSelectedItem = item;
-			InputValue = item?.Text ?? "";
+			lastSelectedItem = null;
+			InputValue = "";
+			Value = null;
 
-			Value = item?.DataObject;
-
-			if (RecentRepository != null && item != null)
+			if (isFocused)
 			{
-				await RecentRepository.AddHit(item.Key);
-				item.LastHit = DateTime.Now;
+				// Go ahead and close down if we don't open just for focus
+				isOpen = OpenOnFocus;
 			}
 
 			if (ValueChanged.HasDelegate)
 			{
-				await ValueChanged.InvokeAsync(item?.DataObject);
+				await ValueChanged.InvokeAsync(null!);
 			}
 
-			if (ClearAfterSelection)
-			{
-				await ClearInputValue();
-			}
-
-			await FireValueChange(new ChangeEventArgs { Value = InputValue }, true);
-
-			isOpen = false;
+			await ClearSelectedValue();
+			await FilterDebounced(50);
 		}
 
 		private async Task OnFocus()
@@ -401,8 +462,6 @@ namespace ZBlazor
 
 		private async Task OnKeyDown(KeyboardEventArgs args)
 		{
-			preventKeyDownDefault = false;
-
 			if (args.CtrlKey && args.ShiftKey && args.Key == "D")
 			{
 				Logger?.LogWarning("QuickInput Debug: {@Model}", new
@@ -455,8 +514,6 @@ namespace ZBlazor
 					await ChooseSelected();
 					break;
 				case "Escape":
-					// TODO: this doesn't really work
-					preventKeyDownDefault = true;
 					if (!hasInputValue)
 					{
 						isOpen = !isOpen;
@@ -848,27 +905,6 @@ namespace ZBlazor
 			}
 
 			return key ?? Guid.NewGuid().ToString();
-		}
-
-		private async ValueTask ClearInputValue()
-		{
-			lastSelectedItem = null;
-			InputValue = "";
-			Value = null;
-
-			if (isFocused)
-			{
-				// Go ahead and close down if we don't open just for focus
-				isOpen = OpenOnFocus;
-			}
-
-			if (ValueChanged.HasDelegate)
-			{
-				await ValueChanged.InvokeAsync(null!);
-			}
-
-			await ClearSelectedValue();
-			await FilterDebounced(50);
 		}
 
 		private ValueTask ClearSelectedValue()

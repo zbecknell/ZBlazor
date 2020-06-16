@@ -31,8 +31,9 @@
             <span class="zb-quick-input-clear-symbol">&times;</span>
         </span>
     }
-    <div class="@($"zb-quick-input-items {(isOpen ? " zb-quick-input-items-open" :"")}")"
-         style="@($"{(MaxItemsHeight != null ? $"max-height:{MaxItemsHeight}" : "")}")"
+    <div id="@_itemContainerId"
+		 class="@($"zb-quick-input-items {(isOpen ? " zb-quick-input-items-open" :"")}")"
+         style="position: relative; @($"{(MaxItemsHeight != null ? $"max-height:{MaxItemsHeight}" : "")}")"
          @onmousedown="OnMouseDown"
          @onmouseup="OnMouseUp">
         <div class="zb-quick-input-items-scrollable">

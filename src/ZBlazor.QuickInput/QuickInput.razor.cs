@@ -18,6 +18,8 @@ namespace ZBlazor
 	{
 		#region FIELDS
 
+		string _itemContainerId = Guid.NewGuid().ToString();
+
 		int selectedItemIndex = -1;
 		bool isOpen = false;
 		bool hasInputValue => InputValue != "";
@@ -414,7 +416,7 @@ namespace ZBlazor
 
 			if(id != null)
 			{
-				await Js.InvokeVoidAsync("zb.scrollToId", id);
+				await Js.InvokeVoidAsync("zb.scrollToId", id, _itemContainerId);
 			}
 		}
 

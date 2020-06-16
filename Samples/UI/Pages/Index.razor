@@ -7,6 +7,7 @@
                 Data="iconNames"
                 Class="form-control"
                 MaxItemsToShow="maxItemsToShow"
+				MaxItemsHeight="300px"
                 TItem="string"
                 Value="inputValue"
                 ValueChanged="OnItemSelected"
@@ -17,7 +18,8 @@
                 ClearOnEscape="clearOnEscape"
                 ClearAfterSelection="clearAfterSelection"
                 RecentRepository="@(new InMemoryRecentRepository("IconPicker"))"
-                AllowCustomValues="allowCustomInputValue" />
+                AllowCustomValues="allowCustomInputValue"
+				OnSelectedItemIdChanged="OnSelectedItemIdChanged" />
 </div>
 
 <hr />
@@ -105,4 +107,9 @@
         selectedItems.Add(text);
         inputValue = text;
     }
+
+	void OnSelectedItemIdChanged(string id)
+	{
+		Serilog.Log.Information("Selected item Id: {Id}", id);
+	}
 }

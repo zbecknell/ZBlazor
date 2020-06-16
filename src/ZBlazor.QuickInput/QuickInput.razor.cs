@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -30,6 +31,8 @@ namespace ZBlazor
 		SearchItem<TItem>? lastSelectedItem = null;
 
 		[Inject] private ILogger<QuickInput<TItem>>? Logger { get; set; }
+
+		[Inject] private IJSRuntime Js { get; set; } = null!;
 
 		string lastInputValue = "";
 
@@ -187,6 +190,11 @@ namespace ZBlazor
 		[Parameter] public EventCallback<string> OnInputValueChanged { get; set; }
 
 		/// <summary>
+		/// Occurs when the selected item changes in the dropdown (as in via arrow keys). Passes the ID of the DOM element selected.
+		/// </summary>
+		[Parameter] public EventCallback<string> OnSelectedItemIdChanged { get; set; }
+
+		/// <summary>
 		/// When present, the input will pass through this filter before performing the search.
 		/// </summary>
 		[Parameter] public Func<string?, string?>? InputValueFilter { get; set; }
@@ -312,6 +320,8 @@ namespace ZBlazor
 				InputValue = await GetInputTextFromValue(Value);
 			}
 
+			await ScrollToActiveItem();
+
 			await base.OnAfterRenderAsync(firstRender);
 		}
 
@@ -396,6 +406,16 @@ namespace ZBlazor
 
 			await ClearSelectedValue();
 			await FilterDebounced(50);
+		}
+
+		private async ValueTask ScrollToActiveItem()
+		{
+			var id = SearchItems?.FirstOrDefault(i => i.IsSelected)?.Id;
+
+			if(id != null)
+			{
+				await Js.InvokeVoidAsync("zb.scrollToId", id);
+			}
 		}
 
 		private async Task OnFocus()

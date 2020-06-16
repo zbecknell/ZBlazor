@@ -6,7 +6,8 @@ namespace ZBlazor.QuickInput
 {
     public class SearchItem<TDataObject>
     {
-        public MarkupString GetDisplayText(bool highlightMatches = true, bool showOtherMatches = true)
+		public string Id = Guid.NewGuid().ToString();
+		public MarkupString GetDisplayText(bool highlightMatches = true, bool showOtherMatches = true)
         {
             if (!highlightMatches || Matches == null || string.IsNullOrWhiteSpace(Text))
             {

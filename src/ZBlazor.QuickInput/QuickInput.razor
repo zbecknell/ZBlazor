@@ -32,7 +32,7 @@
         </span>
     }
     <div class="@($"zb-quick-input-items {(isOpen ? " zb-quick-input-items-open" :"")}")"
-         style="@($"{(MaxItemsHeight != null ? $"style: {MaxItemsHeight}" : "")}")"
+         style="@($"{(MaxItemsHeight != null ? $"max-height:{MaxItemsHeight}" : "")}")"
          @onmousedown="OnMouseDown"
          @onmouseup="OnMouseUp">
         <div class="zb-quick-input-items-scrollable">
@@ -66,21 +66,18 @@
             }
             else if (!IsFiltering && hasInputValue && SearchItems.All(i => !i.IsMatch))
             {
-                <div class="zb-quick-input-item"
-                     @onclick:preventDefault="true"
-                     @onclick:stopPropagation="true"
-                     @onmousedown:stopPropagation="true"
-                     @onmousedown:preventDefault="true"
-                     @onclick="@(() => isOpen = false)">
-                    @if (NoResultsView != null)
-                    {
-                        @NoResultsView
-                    }
-                    else
-                    {
-                        <span>No items found</span>
-                    }
-                </div>
+				if (NoResultsView != null)
+				{
+					<div class="zb-quick-input-item"
+						@onclick:preventDefault="true"
+						@onclick:stopPropagation="true"
+						@onmousedown:stopPropagation="true"
+						@onmousedown:preventDefault="true"
+						@onclick="@(() => isOpen = false)">
+							@NoResultsView
+					</div>
+
+				}
             }
             else if (!hasInputValue && NoInputView != null)
             {
@@ -104,6 +101,7 @@
                     }
 
                     <div @key="item.Key"
+						 id="@item.Id"
                          class="@($"zb-quick-input-item {(showingIndex == selectedItemIndex ? "zb-quick-input-active" : "")}  {(item.LastHit != null ? "zb-quick-input-item-recent" : "")}")"
                          @onclick="@(async () => await OnSelected(item))">
                         @if (ItemTemplate != null)

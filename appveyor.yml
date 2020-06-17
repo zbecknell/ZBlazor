@@ -8,7 +8,7 @@ artifacts:
 - path: artifacts/ZBlazor.*.nupkg
 deploy:
 - provider: NuGet
-  symbol_server: https://ci.appveyor.com/nuget/ZBlazor/api/v2/package
+  skip_symbols: true
   api_key:
     secure: 3+5T+2Z10TlETuXd44nQ/I3+8L4dVYOmit62NY7kwm7kyGrUG0W3gf00zAo6hBXz
   on:

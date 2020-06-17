@@ -16,7 +16,7 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\ZBlazor.QuickInput\ZBlazor.QuickInput.csproj" />
+    <ProjectReference Include="..\..\src\ZBlazor\ZBlazor.csproj" />
   </ItemGroup>
 
 </Project>

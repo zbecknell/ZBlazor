@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.Razor">
     <PropertyGroup>
-        <Description>A pure Blazor autocomplete component with fuzzy matching.</Description>
+        <Description>A set of Blazor autocomplete components with minimal JS.</Description>
         <VersionPrefix>0.2.0</VersionPrefix>
         <Authors>Zachary Becknell</Authors>
         <Copyright>Copyright © Zachary Becknell 2020</Copyright>
         <TreatWarningsAsError>true</TreatWarningsAsError>
         <PackageTags>blazor;autocomplete;fuzzy;input</PackageTags>
-        <PackageProjectUrl>https://github.com/zbecknell/ZBlazor.QuickInput</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/zbecknell/ZBlazor</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <RepositoryUrl>https://github.com/zbecknell/ZBlazor.QuickInput</RepositoryUrl>
+        <RepositoryUrl>https://github.com/zbecknell/ZBlazor</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <TargetFramework>netstandard2.1</TargetFramework>
         <RazorLangVersion>3.0</RazorLangVersion>

@@ -25,6 +25,7 @@ namespace ZBlazor
 		bool hasInputValue => InputValue != "";
 		bool isMouseDown = false;
 		bool isFocused = false;
+		bool _shouldScrollToItem = false;
 
 		readonly FuzzyMatcher _fuzzyMatcher = new FuzzyMatcher();
 
@@ -412,16 +413,20 @@ namespace ZBlazor
 
 		private async ValueTask ScrollToActiveItem()
 		{
+			if (!_shouldScrollToItem) return;
+
 			var id = SearchItems?.FirstOrDefault(i => i.IsSelected)?.Id;
 
-			if(id != null)
+			if (id != null)
 			{
 				await Js.InvokeVoidAsync("zb.scrollToId", id, _itemContainerId);
 			}
+			_shouldScrollToItem = false;
 		}
 
 		private async Task OnFocus()
 		{
+			_shouldScrollToItem = true;
 			if (!hasLoaded)
 			{
 				IsLoading = true;
@@ -504,6 +509,7 @@ namespace ZBlazor
 			switch (args.Code)
 			{
 				case "ArrowDown":
+					_shouldScrollToItem = true;
 					if (selectedItemIndex + 1 >= actualShowingItems)
 					{
 						selectedItemIndex = 0;
@@ -515,6 +521,7 @@ namespace ZBlazor
 					isOpen = true;
 					break;
 				case "ArrowUp":
+					_shouldScrollToItem = true;
 					if (selectedItemIndex - 1 <= -1)
 					{
 						selectedItemIndex = actualShowingItems - 1;

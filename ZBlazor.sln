@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30001.183
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZBlazor.QuickInput", "src\ZBlazor.QuickInput\ZBlazor.QuickInput.csproj", "{7EBDCF25-BD02-4427-885C-72BE68A2CF03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZBlazor", "src\ZBlazor\ZBlazor.csproj", "{7EBDCF25-BD02-4427-885C-72BE68A2CF03}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{7407AE75-3573-442B-9EDC-651BD3509270}"
 EndProject

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using ZBlazor.QuickInput;
+using ZBlazor.QuickAutocomplete;
 
 namespace ZBlazor
 {

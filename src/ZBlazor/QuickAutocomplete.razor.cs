@@ -9,19 +9,19 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ZBlazor.QuickInput;
+using ZBlazor.QuickAutocomplete;
 
 namespace ZBlazor
 {
 	/// <summary>
 	/// An autocomplete input with fuzzy matching ability.
 	/// </summary>
-	public partial class QuickInput<TItem> : ComponentBase
+	public partial class QuickAutocomplete<TItem> : ComponentBase
 		where TItem : class
 	{
 		#region INJECTED
 
-		[Inject] private ILogger<QuickInput<TItem>>? Logger { get; set; }
+		[Inject] private ILogger<QuickAutocomplete<TItem>>? Logger { get; set; }
 
 		[Inject] private IJSRuntime Js { get; set; } = null!;
 
@@ -68,7 +68,7 @@ namespace ZBlazor
 		[Parameter] public string? InputValue { get; set; } = "";
 
 		/// <summary>
-		/// The collection of items to list as options in the <see cref="QuickInput{TItem}"/>.
+		/// The collection of items to list as options in the <see cref="QuickAutocomplete{TItem}"/>.
 		/// </summary>
 		[Parameter] public IEnumerable<TItem> Data { get; set; } = null!;
 
@@ -501,7 +501,7 @@ namespace ZBlazor
 		{
 			if (args.CtrlKey && args.ShiftKey && args.Key == "D")
 			{
-				Logger?.LogWarning("QuickInput Debug: {@Model}", new
+				Logger?.LogWarning("QuickAutocomplete Debug: {@Model}", new
 				{
 					InputValue,
 					lastInputValue,
@@ -984,19 +984,19 @@ namespace ZBlazor
 	}
 
 	/// <summary>
-	/// Global properties for all QuickInputs within the static scope.
+	/// Global properties for all QuickAutocompletes within the static scope.
 	/// </summary>
-	public static class QuickInputGlobalProperties
+	public static class QuickAutocompleteGlobalProperties
 	{
 		#region GLOBAL PARAMETERS
 
 		/// <summary>
-		/// The class applied to the input element within the QuickInput component. Setting this on an individual QuickInput will override this global setting.
+		/// The class applied to the input element within the QuickAutocomplete component. Setting this on an individual QuickAutocomplete will override this global setting.
 		/// </summary>
 		public static string? Class { get; set; }
 
 		/// <summary>
-		/// The class applied to the containing div element of the QuickInput component. Setting this on an individual QuickInput will override this global setting.
+		/// The class applied to the containing div element of the QuickAutocomplete component. Setting this on an individual QuickAutocomplete will override this global setting.
 		/// </summary>
 		public static string? ContainerClass { get; set; }
 

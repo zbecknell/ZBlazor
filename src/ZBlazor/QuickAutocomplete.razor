@@ -1,10 +1,10 @@
 ﻿@namespace ZBlazor
 @typeparam TItem
-<div class="@($"zb-quick-input-container {ContainerClass ?? QuickInputGlobalProperties.ContainerClass}")"
+<div class="@($"zb-quick-autocomplete-container {ContainerClass ?? QuickAutocompleteGlobalProperties.ContainerClass}")"
      style="@($"width:{Width};")">
     <input type="@InputType"
            value="@InputValue"
-           class="@(Class ?? QuickInputGlobalProperties.Class)"
+           class="@(Class ?? QuickAutocompleteGlobalProperties.Class)"
            @attributes="InputAttributes"
            @oninput="OnValueChange"
            @onkeydown="OnKeyDown"
@@ -18,7 +18,7 @@
     }
     @if (ShowClearButton)
     {
-        <span class="zb-quick-input-clear-button"
+        <span class="zb-quick-autocomplete-clear-button"
               title="Clear value"
               style="@($"{(HasInputValue ? "" : "display: none;")}")"
               @onclick="@(async () => await ClearInputValue())"
@@ -28,15 +28,15 @@
               @onmousedown:stopPropagation="true"
               @onmouseup:preventDefault="true"
               @onmouseup:stopPropagation="true">
-            <span class="zb-quick-input-clear-symbol">&times;</span>
+            <span class="zb-quick-autocomplete-clear-symbol">&times;</span>
         </span>
     }
     <div id="@_itemContainerId"
-		 class="@($"zb-quick-input-items {(isOpen ? " zb-quick-input-items-open" :"")}")"
+		 class="@($"zb-quick-autocomplete-items {(isOpen ? " zb-quick-autocomplete-items-open" :"")}")"
          style="@($"{(MaxItemsHeight != null ? $"max-height:{MaxItemsHeight}" : "")}")"
          @onmousedown="OnMouseDown"
          @onmouseup="OnMouseUp">
-        <div class="zb-quick-input-items-scrollable">
+        <div class="zb-quick-autocomplete-items-scrollable">
             @foreach (var item in SearchItems.Where(i => i.IsSelected))
             {
                 item.IsSelected = false;
@@ -49,7 +49,7 @@
 
             @if(HasInputValue && IsLoading)
 			{
-                <div class="zb-quick-input-item"
+                <div class="zb-quick-autocomplete-item"
                      @onclick:preventDefault="true"
                      @onclick:stopPropagation="true"
                      @onmousedown:stopPropagation="true"
@@ -69,7 +69,7 @@
 			{
 				if (NoResultsView != null)
 				{
-					<div class="zb-quick-input-item"
+					<div class="zb-quick-autocomplete-item"
 						@onclick:preventDefault="true"
 						@onclick:stopPropagation="true"
 						@onmousedown:stopPropagation="true"
@@ -82,7 +82,7 @@
 			}
 			else if (!HasInputValue && NoInputView != null)
 			{
-                <div class="zb-quick-input-item"
+                <div class="zb-quick-autocomplete-item"
                      @onclick:preventDefault="true"
                      @onclick:stopPropagation="true"
                      @onmousedown:preventDefault="true"
@@ -103,7 +103,7 @@
 
                     <div @key="item.Key"
 						 id="@item.Id"
-                         class="@($"zb-quick-input-item {(showingIndex == selectedItemIndex ? "zb-quick-input-active" : "")}  {(item.LastHit != null ? "zb-quick-input-item-recent" : "")}")"
+                         class="@($"zb-quick-autocomplete-item {(showingIndex == selectedItemIndex ? "zb-quick-autocomplete-active" : "")}  {(item.LastHit != null ? "zb-quick-autocomplete-item-recent" : "")}")"
                          @onclick="@(async () => await OnSelected(item))">
                         @if (ItemTemplate != null)
                         {

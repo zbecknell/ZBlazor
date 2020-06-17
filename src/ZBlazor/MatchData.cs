@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ZBlazor.QuickInput
+namespace ZBlazor.QuickAutocomplete
 {
 	/// <summary>
 	/// A container for matching data from a filter operation.

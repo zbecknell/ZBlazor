@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ZBlazor.QuickInput
+namespace ZBlazor.QuickAutocomplete
 {
 	/// <summary>
 	/// A port of VS Code's matchFuzzy2 filter.

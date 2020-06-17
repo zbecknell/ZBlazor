@@ -2,17 +2,17 @@
 using System;
 using System.Collections.Generic;
 
-namespace ZBlazor.QuickInput
+namespace ZBlazor.QuickAutocomplete
 {
 	/// <summary>
-	/// The container for an individual item in a QuickInput.
+	/// The container for an individual item in a QuickAutocomplete.
 	/// </summary>
 	public class SearchItem<TDataObject>
 	{
 		#region FIELDS
 
 		/// <summary>
-		/// Applied to the actual item element within the QuickInput items list.
+		/// Applied to the actual item element within the QuickAutocomplete items list.
 		/// </summary>
 		public readonly string Id = Guid.NewGuid().ToString();
 
@@ -96,23 +96,23 @@ namespace ZBlazor.QuickInput
 		{
 			if (!highlightMatches || Matches == null || string.IsNullOrWhiteSpace(Text))
 			{
-				return (MarkupString)$"<span class\"zb-quick-input-filter-match\">{Text}</span>";
+				return (MarkupString)$"<span class\"zb-quick-autocomplete-filter-match\">{Text}</span>";
 			}
 
 			if (highlightMatches && Matches != null && OtherMatchFieldValue == null && OtherMatchFieldValue == null)
 			{
-				return (MarkupString)$"<span class\"zb-quick-input-filter-match\">{GetMatchesMarkup(Matches, Text)}</span>";
+				return (MarkupString)$"<span class\"zb-quick-autocomplete-filter-match\">{GetMatchesMarkup(Matches, Text)}</span>";
 			}
 
 			if (highlightMatches && showOtherMatches && Matches != null && OtherMatchFieldName != null && OtherMatchFieldValue != null)
 			{
 				var result = new System.Text.StringBuilder();
 				result.Append(Text);
-				result.Append($"<span class=\"zb-quick-input-filter-match\"><br/><small>Matches {OtherMatchFieldName}: {GetMatchesMarkup(Matches, OtherMatchFieldValue)}</small></span>");
+				result.Append($"<span class=\"zb-quick-autocomplete-filter-match\"><br/><small>Matches {OtherMatchFieldName}: {GetMatchesMarkup(Matches, OtherMatchFieldValue)}</small></span>");
 				return (MarkupString)result.ToString();
 			}
 
-			return (MarkupString)$"<span class\"zb-quick-input-filter-match\">{Text}</span>";
+			return (MarkupString)$"<span class\"zb-quick-autocomplete-filter-match\">{Text}</span>";
 		}
 
 		private string GetMatchesMarkup(List<FilterMatch> matches, string value)

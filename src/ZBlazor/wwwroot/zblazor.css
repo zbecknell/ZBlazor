@@ -1,13 +1,13 @@
-.zb-quick-input-container {
+.zb-quick-autocomplete-container {
     position: relative;
     display: inline-block;
 }
 
-    .zb-quick-input-container input[type=text] {
+    .zb-quick-autocomplete-container input[type=text] {
         width: 100%;
     }
 
-    .zb-quick-input-container .zb-quick-input-clear-button {
+    .zb-quick-autocomplete-container .zb-quick-autocomplete-clear-button {
         display: none;
         position: absolute;
         font-size: 1.3em;
@@ -19,20 +19,20 @@
         color: darkgrey;
     }
 
-    .zb-quick-input-container .zb-quick-input-clear-button .zb-quick-input-clear-symbol {
+    .zb-quick-autocomplete-container .zb-quick-autocomplete-clear-button .zb-quick-autocomplete-clear-symbol {
         padding: 5px 10px;
     }
 
-    .zb-quick-input-container input[type=text]:focus + .zb-quick-input-clear-button,
-    .zb-quick-input-container:hover .zb-quick-input-clear-button {
+    .zb-quick-autocomplete-container input[type=text]:focus + .zb-quick-autocomplete-clear-button,
+    .zb-quick-autocomplete-container:hover .zb-quick-autocomplete-clear-button {
         display: inline;
     }
 
-    .zb-quick-input-container .zb-quick-input-clear-button:hover {
+    .zb-quick-autocomplete-container .zb-quick-autocomplete-clear-button:hover {
         color: #777;
     }
 
-.zb-quick-input-items {
+.zb-quick-autocomplete-items {
     position: absolute;
     border: 1px solid #d4d4d4;
     border-bottom: none;
@@ -45,27 +45,27 @@
     display: none;
 }
 
-    .zb-quick-input-items.zb-quick-input-items-open {
+    .zb-quick-autocomplete-items.zb-quick-autocomplete-items-open {
         border-bottom: 1px solid #d4d4d4;
         display: block;
     }
 
-.zb-quick-input-items-scrollable div {
+.zb-quick-autocomplete-items-scrollable div {
     padding: 10px;
     cursor: pointer;
     background-color: #fff;
     border-bottom: 1px solid #d4d4d4;
 }
 
-    .zb-quick-input-items-scrollable div:last-of-type {
+    .zb-quick-autocomplete-items-scrollable div:last-of-type {
         border-bottom: none;
     }
 
-    .zb-quick-input-items-scrollable div:hover {
+    .zb-quick-autocomplete-items-scrollable div:hover {
         background-color: #e9e9e9;
     }
 
-    .zb-quick-input-items-scrollable div.zb-quick-input-active {
+    .zb-quick-autocomplete-items-scrollable div.zb-quick-autocomplete-active {
         background-color: #5791F5;
         color: #ffffff;
     }

@@ -1,4 +1,4 @@
-﻿namespace ZBlazor.QuickInput
+﻿namespace ZBlazor.QuickAutocomplete
 {
 	/// <summary>
 	/// Represents the range of matching characters in an item.

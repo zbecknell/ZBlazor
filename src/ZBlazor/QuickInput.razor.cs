@@ -13,42 +13,52 @@ using ZBlazor.QuickInput;
 
 namespace ZBlazor
 {
+	/// <summary>
+	/// An autocomplete input with fuzzy matching ability.
+	/// </summary>
 	public partial class QuickInput<TItem> : ComponentBase
 		where TItem : class
 	{
-		#region FIELDS
-
-		string _itemContainerId = Guid.NewGuid().ToString();
-
-		int selectedItemIndex = -1;
-		bool isOpen = false;
-		bool hasInputValue => InputValue != "";
-		bool isMouseDown = false;
-		bool isFocused = false;
-		bool _shouldScrollToItem = false;
-
-		readonly FuzzyMatcher _fuzzyMatcher = new FuzzyMatcher();
-
-		List<SearchItem<TItem>> SearchItems = new List<SearchItem<TItem>>();
-
-		SearchItem<TItem>? lastSelectedItem = null;
+		#region INJECTED
 
 		[Inject] private ILogger<QuickInput<TItem>>? Logger { get; set; }
 
 		[Inject] private IJSRuntime Js { get; set; } = null!;
 
-		string lastInputValue = "";
+		#endregion INJECTED
+
+		#region FIELDS
+
+		private readonly FuzzyMatcher _fuzzyMatcher = new FuzzyMatcher();
+		private readonly string _itemContainerId = Guid.NewGuid().ToString();
+
+		private bool _shouldScrollToItem = false;
+		private bool hasLoaded;
+		private bool isFocused = false;
+		private bool isMouseDown = false;
+		private bool isOpen = false;
+		private int previousCycleDataCount = 0;
+		private int selectedItemIndex = -1;
+		private List<SearchItem<TItem>> SearchItems = new List<SearchItem<TItem>>();
+		private SearchItem<TItem>? lastSelectedItem = null;
+		private string lastInputValue = "";
+		private CancellationTokenSource? currentSearchCts;
+		private int actualShowingItems;
+
+		#endregion FIELDS
+
+		#region PROPERTIES
 
 		/// <summary>
 		/// True when the search items are loading.
 		/// </summary>
 		public bool IsLoading { get; private set; }
 
-		int previousCycleDataCount = 0;
+		private bool IsFiltering => currentSearchCts != null;
 
-		bool hasLoaded;
+		private bool HasInputValue => InputValue != "";
 
-		#endregion FIELDS
+		#endregion PROPERTIES
 
 		#region PARAMETERS
 
@@ -75,12 +85,12 @@ namespace ZBlazor
 		/// <summary>
 		/// Any additional class(es) to apply to the actual input box.
 		/// </summary>
-		[Parameter] public string Class { get; set; } = "";
+		[Parameter] public string? Class { get; set; }
 
 		/// <summary>
 		/// Any additional class(es) to apply to the outer div containing the input.
 		/// </summary>
-		[Parameter] public string ContainerClass { get; set; } = "";
+		[Parameter] public string? ContainerClass { get; set; }
 
 		/// <summary>
 		/// The width of the component. Defaults to "300px".
@@ -378,7 +388,7 @@ namespace ZBlazor
 				await OnInputValueChanged.InvokeAsync(InputValue);
 			}
 
-			isOpen = OpenOnFocus || hasInputValue;
+			isOpen = OpenOnFocus || HasInputValue;
 
 			await FilterDebounced();
 
@@ -497,7 +507,7 @@ namespace ZBlazor
 					lastInputValue,
 					Matches = SearchItems.Where(i => i.IsMatch),
 					FilteredInputValue = (InputValueFilter != null ? InputValueFilter(InputValue) : null),
-					hasInputValue,
+					HasInputValue,
 					isOpen,
 					IsLoading,
 					IsFiltering,
@@ -543,7 +553,7 @@ namespace ZBlazor
 					await ChooseSelected();
 					break;
 				case "Escape":
-					if (!hasInputValue)
+					if (!HasInputValue)
 					{
 						isOpen = !isOpen;
 					}
@@ -572,7 +582,7 @@ namespace ZBlazor
 		{
 			isMouseDown = true;
 
-			if (isFocused && OpenOnFocus && !hasInputValue && !isOpen)
+			if (isFocused && OpenOnFocus && !HasInputValue && !isOpen)
 			{
 				isOpen = true;
 			}
@@ -587,9 +597,82 @@ namespace ZBlazor
 
 		#region METHODS
 
-		bool IsFiltering => currentSearchCts != null;
+		/// <summary>
+		/// Gets the propertly ordered list of search items.
+		/// </summary>
+		protected virtual List<SearchItem<TItem>> GetOrderedSearchItems()
+		{
+			var result = new List<SearchItem<TItem>>();
 
-		CancellationTokenSource? currentSearchCts;
+			int actualItemsToShow = MaxItemsToShow == 0 ? SearchItems.Count : MaxItemsToShow;
+
+			if (!HasInputValue)
+			{
+				if (RecentRepository != null)
+				{
+					result = SearchItems
+						.OrderByDescending(i => i.LastHit)
+						.Where(FilterPredicate)
+						.Take(actualItemsToShow)
+						.ToList();
+				}
+				else
+				{
+					result = SearchItems
+						.Take(actualItemsToShow)
+						.ToList();
+				}
+
+				actualShowingItems = result.Count;
+
+				return result;
+			}
+
+			IOrderedEnumerable<SearchItem<TItem>> ordered = null!;
+
+			if (PrioritizeShorterValues)
+			{
+				ordered = SearchItems
+					.OrderBy(i => i.Text.Length);
+			}
+
+			if (PrioritizePrimaryMatch)
+			{
+				if (PrioritizeShorterValues)
+				{
+					ordered = ordered
+						.ThenByDescending(i => i.IsPrimaryMatch);
+				}
+				else
+				{
+					ordered = SearchItems
+						.OrderByDescending(i => i.IsPrimaryMatch);
+				}
+			}
+
+			if (PrioritizePrimaryMatch || PrioritizeShorterValues)
+			{
+				result = ordered
+					.ThenByDescending(i => i.Score)
+					.Where(i => i.IsMatch)
+					.Where(FilterPredicate)
+					.Take(actualItemsToShow)
+					.ToList();
+			}
+			else
+			{
+				result = SearchItems
+				.OrderByDescending(i => i.Score)
+				.Where(i => i.IsMatch)
+				.Where(FilterPredicate)
+				.Take(actualItemsToShow)
+				.ToList();
+			}
+
+			actualShowingItems = result.Count;
+
+			return result;
+		}
 
 		private async ValueTask FilterDebounced(int? debounceMilliseconds = null, bool forceRefresh = false)
 		{
@@ -617,7 +700,7 @@ namespace ZBlazor
 		private int GetDefaultSelectedItemIndex()
 		{
 			// Never select anything when we have no input and choose on blur/tab
-			if (!hasInputValue && (ChooseItemOnBlur || ChooseItemOnTab))
+			if (!HasInputValue && (ChooseItemOnBlur || ChooseItemOnTab))
 			{
 				return 0;
 			}
@@ -740,85 +823,6 @@ namespace ZBlazor
 			Logger?.LogDebug("Filtered input in {Elapsed} ms with {Matches} matches", stopwatch.Elapsed.Milliseconds, SearchItems.Count(i => i.IsMatch));
 
 			return default;
-		}
-
-		int actualShowingItems;
-
-		/// <summary>
-		/// Gets the propertly ordered list of search items.
-		/// </summary>
-		protected virtual List<SearchItem<TItem>> GetOrderedSearchItems()
-		{
-			var result = new List<SearchItem<TItem>>();
-
-			int actualItemsToShow = MaxItemsToShow == 0 ? SearchItems.Count : MaxItemsToShow;
-
-			if (!hasInputValue)
-			{
-				if (RecentRepository != null)
-				{
-					result = SearchItems
-						.OrderByDescending(i => i.LastHit)
-						.Where(FilterPredicate)
-						.Take(actualItemsToShow)
-						.ToList();
-				}
-				else
-				{
-					result = SearchItems
-						.Take(actualItemsToShow)
-						.ToList();
-				}
-
-				actualShowingItems = result.Count;
-
-				return result;
-			}
-
-			IOrderedEnumerable<SearchItem<TItem>> ordered = null!;
-
-			if (PrioritizeShorterValues)
-			{
-				ordered = SearchItems
-					.OrderBy(i => i.Text.Length);
-			}
-
-			if (PrioritizePrimaryMatch)
-			{
-				if (PrioritizeShorterValues)
-				{
-					ordered = ordered
-						.ThenByDescending(i => i.IsPrimaryMatch);
-				}
-				else
-				{
-					ordered = SearchItems
-						.OrderByDescending(i => i.IsPrimaryMatch);
-				}
-			}
-
-			if (PrioritizePrimaryMatch || PrioritizeShorterValues)
-			{
-				result = ordered
-					.ThenByDescending(i => i.Score)
-					.Where(i => i.IsMatch)
-					.Where(FilterPredicate)
-					.Take(actualItemsToShow)
-					.ToList();
-			}
-			else
-			{
-				result = SearchItems
-				.OrderByDescending(i => i.Score)
-				.Where(i => i.IsMatch)
-				.Where(FilterPredicate)
-				.Take(actualItemsToShow)
-				.ToList();
-			}
-
-			actualShowingItems = result.Count;
-
-			return result;
 		}
 
 		private void ClearItem(SearchItem<TItem> item)
@@ -968,7 +972,7 @@ namespace ZBlazor
 
 			// State Open + In Limit + NOT Matching
 			// If we DON'T have an input value, we show the default list
-			if (!hasInputValue || IsFiltering)
+			if (!HasInputValue || IsFiltering)
 			{
 				return true;
 			}
@@ -977,5 +981,25 @@ namespace ZBlazor
 		}
 
 		#endregion METHODS
+	}
+
+	/// <summary>
+	/// Global properties for all QuickInputs within the static scope.
+	/// </summary>
+	public static class QuickInputGlobalProperties
+	{
+		#region GLOBAL PARAMETERS
+
+		/// <summary>
+		/// The class applied to the input element within the QuickInput component. Setting this on an individual QuickInput will override this global setting.
+		/// </summary>
+		public static string? Class { get; set; }
+
+		/// <summary>
+		/// The class applied to the containing div element of the QuickInput component. Setting this on an individual QuickInput will override this global setting.
+		/// </summary>
+		public static string? ContainerClass { get; set; }
+
+		#endregion
 	}
 }

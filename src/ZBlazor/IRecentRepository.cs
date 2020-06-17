@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 
 namespace ZBlazor
 {
+	/// <summary>
+	/// An interface used for storing recent hits.
+	/// </summary>
 	public interface IRecentRepository
 	{
 		/// <summary>

@@ -4,11 +4,17 @@ using System.Threading.Tasks;
 
 namespace ZBlazor
 {
+	/// <summary>
+	/// An ephemeral recent repository that adds entries until the program is restarted.
+	/// </summary>
 	public class InMemoryRecentRepository : IRecentRepository
 	{
 		private readonly ConcurrentDictionary<string, DateTime> _recents = new ConcurrentDictionary<string, DateTime>();
 		private readonly string _repositoryName;
 
+		/// <summary>
+		/// Instantiates a new <see cref="InMemoryRecentRepository"/> partitioned by the given name.
+		/// </summary>
 		public InMemoryRecentRepository(string name)
 		{
 			_repositoryName = name ?? throw new ArgumentNullException(nameof(name));

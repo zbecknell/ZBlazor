@@ -1,10 +1,10 @@
 ﻿@namespace ZBlazor
 @typeparam TItem
-<div class="@($"zb-quick-input-container {ContainerClass} ")"
+<div class="@($"zb-quick-input-container {ContainerClass ?? QuickInputGlobalProperties.ContainerClass}")"
      style="@($"width:{Width};")">
     <input type="@InputType"
            value="@InputValue"
-           class="@Class"
+           class="@(Class ?? QuickInputGlobalProperties.Class)"
            @attributes="InputAttributes"
            @oninput="OnValueChange"
            @onkeydown="OnKeyDown"
@@ -20,7 +20,7 @@
     {
         <span class="zb-quick-input-clear-button"
               title="Clear value"
-              style="@($"{(hasInputValue ? "" : "display: none;")}")"
+              style="@($"{(HasInputValue ? "" : "display: none;")}")"
               @onclick="@(async () => await ClearInputValue())"
               @onclick:stopPropagation="true"
               @onclick:preventDefault="true"
@@ -47,8 +47,8 @@
                 item.ShouldItemShow = false;
             }
 
-            @if(hasInputValue && IsLoading)
-            {
+            @if(HasInputValue && IsLoading)
+			{
                 <div class="zb-quick-input-item"
                      @onclick:preventDefault="true"
                      @onclick:stopPropagation="true"
@@ -64,9 +64,9 @@
                         <span>Loading...</span>
                     }
                 </div>
-            }
-            else if (!IsFiltering && hasInputValue && SearchItems.All(i => !i.IsMatch))
-            {
+			}
+			else if (!IsFiltering && HasInputValue && SearchItems.All(i => !i.IsMatch))
+			{
 				if (NoResultsView != null)
 				{
 					<div class="zb-quick-input-item"
@@ -79,9 +79,9 @@
 					</div>
 
 				}
-            }
-            else if (!hasInputValue && NoInputView != null)
-            {
+			}
+			else if (!HasInputValue && NoInputView != null)
+			{
                 <div class="zb-quick-input-item"
                      @onclick:preventDefault="true"
                      @onclick:stopPropagation="true"

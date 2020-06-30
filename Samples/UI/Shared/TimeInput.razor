@@ -1,11 +1,11 @@
 ﻿<QuickAutocomplete Data="Times"
             inputmode="numeric"
-            TItem="TimePickerItem"
+            TItem="TimeInputItem"
             placeholder="@Placeholder"
             TextField="Display"
             Value="PickerValue"
             ValueChanged="OnValueChange"
-            OtherMatchFields="@(new[] { nameof(TimePickerItem.TwentyFourHourFormattedString) })"
+            OtherMatchFields="@(new[] { nameof(TimeInputItem.TwentyFourHourFormattedString) })"
             MaxItemsToShow="2"
             PrioritizePrimaryMatch="true"
             PrioritizeShorterValues="true"
@@ -41,7 +41,7 @@
 </QuickAutocomplete>
 
 @code {
-    List<TimePickerItem> Times = new List<TimePickerItem>();
+    List<TimeInputItem> Times = new List<TimeInputItem>();
 
     /// <summary>
     /// The <see cref="TimeSpan"/> between available times. Defaults to 1 minute.
@@ -65,7 +65,7 @@
     /// </summary>
     [Parameter] public DateTime? Value { get; set; }
 
-    private TimePickerItem? PickerValue => GetPickerValue();
+    private TimeInputItem? PickerValue => GetPickerValue();
 
     /// <summary>
     /// Fires when the selected time changes.
@@ -83,7 +83,7 @@
         return Task.CompletedTask;
     }
 
-    async Task OnValueChange(TimePickerItem? item)
+    async Task OnValueChange(TimeInputItem? item)
     {
         Value = item?.Value;
 
@@ -93,7 +93,7 @@
         }
     }
 
-    TimePickerItem? GetPickerValue()
+    TimeInputItem? GetPickerValue()
     {
         if (Value != null && Times.Any())
         {
@@ -167,7 +167,7 @@
         return value;
     }
 
-    public class TimePickerItem
+    public class TimeInputItem
     {
         public DateTime Value { get; set; }
         public string Display { get; set; } = null!;
@@ -176,9 +176,9 @@
         public override string ToString() => Display;
     }
 
-    public static List<TimePickerItem> AllTimes = PopulateAllTimes();
+    public static List<TimeInputItem> AllTimes = PopulateAllTimes();
 
-    private static List<TimePickerItem> PopulateAllTimes(string defaultFormat = "h:mm tt", string defaultTwentyFourFormat = "HH:mm tt")
+    private static List<TimeInputItem> PopulateAllTimes(string defaultFormat = "h:mm tt", string defaultTwentyFourFormat = "HH:mm tt")
     {
         var interval = TimeSpan.FromMinutes(1);
         var baseTime = DateTime.MinValue;
@@ -192,11 +192,11 @@
         // We're starting at midnight, so move ahead one interval
         workingTime += interval;
 
-        var times = new List<TimePickerItem>();
+        var times = new List<TimeInputItem>();
 
         while (workingTime <= endTime)
         {
-            times.Add(new TimePickerItem
+            times.Add(new TimeInputItem
             {
                 Value = workingTime,
                 Display = workingTime.ToString(defaultFormat),

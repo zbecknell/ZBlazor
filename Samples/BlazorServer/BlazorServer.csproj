@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Watch Include="../../src/**/*.razor" />
+    <Watch Include="../**/*.razor" />
   </ItemGroup>
 
   <ItemGroup>

@@ -103,7 +103,7 @@
 
                     <div @key="item.Key"
 						 id="@item.Id"
-                         class="@($"zb-quick-autocomplete-item {(showingIndex == selectedItemIndex ? "zb-quick-autocomplete-active" : "")}  {(item.LastHit != null ? "zb-quick-autocomplete-item-recent" : "")}")"
+                         class="@($"zb-quick-autocomplete-item {(showingIndex == selectedItemIndex ? "zb-quick-autocomplete-active" : "")}  {(item.LastHit != null ? "zb-quick-autocomplete-item-recent" : "")} {ItemClass ?? QuickAutocompleteGlobalProperties.ItemClass}")"
                          @onclick="@(async () => await OnSelected(item))">
                         @if (ItemTemplate != null)
                         {

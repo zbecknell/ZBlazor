@@ -7,7 +7,7 @@ namespace ZBlazor.QuickAutocomplete
 	/// <summary>
 	/// A port of VS Code's matchFuzzy2 filter.
 	/// </summary>
-	internal class FuzzyMatcher
+	public class FuzzyMatcher
 	{
 		private const int _maxLength = 53;
 

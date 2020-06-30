@@ -1,0 +1,26 @@
+﻿@page "/autocomplete/implementations/time-input"
+
+<h5>Implementation: Time Input</h5>
+
+<hr />
+
+<div>
+    <UI.Shared.TimeInput @bind-Value="currentTime" />
+</div>
+
+<small>
+    Selected Time: @(currentTime?.ToString("t") ?? "NULL")
+</small>
+
+@code {
+    DateTime? currentTime = new DateTime(2020, 4, 28, 9, 0, 0);
+    BSModal modal = null!;
+
+    async Task ShowModal()
+    {
+        await Task.Delay(100);
+        modal.Show();
+
+        StateHasChanged();
+    }
+}

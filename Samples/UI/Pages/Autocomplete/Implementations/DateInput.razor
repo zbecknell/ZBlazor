@@ -1,6 +1,8 @@
-﻿@page "/date-input"
+﻿@page "/autocomplete/implementations/date-input"
 
 <h5>Date Input <small><BSBadge Color="Color.Warning">prototype</BSBadge></small></h5>
+
+<hr />
 
 <p>
     <div style="width: 300px">
@@ -8,12 +10,11 @@
     </div>
     <small>Current Value: @date?.ToString("d")</small>
 </p>
-<p>
-    <button class="btn btn-danger" @onclick="ClearDateValue">Clear Value</button>
-</p>
-<p>
-    <button class="btn btn-primary" @onclick="SetToY2K">Set To Y2K</button>
-</p>
+
+<div class="d-flex">
+    <button class="btn btn-danger btn-sm mr-1" @onclick="ClearDateValue">Clear Value</button>
+    <button class="btn btn-primary btn-sm" @onclick="SetToY2K">Set To Y2K</button>
+</div>
 
 @code {
     UI.Shared.DateInput dateInput = null!;

@@ -1,0 +1,107 @@
+﻿@page "/combo-box"
+
+<h3>QuickComboBox</h3>
+
+<hr />
+
+<div>
+	<QuickComboBox placeholder="Choose a country"
+					   Data="TestData.CountryNames"
+					   Class="form-control"
+					   MaxItemsHeight="300px"
+					   TItem="string"
+					   Value="inputValue"
+					   ValueChanged="OnItemSelected"
+					   HighlightMatches="highlightMatches"
+					   SelectFirstMatch="selectFirstMatch"
+					   ShowClearButton="showClearButton"
+					   OpenOnFocus="openOnFocus"
+					   ClearOnEscape="clearOnEscape"
+					   ClearAfterSelection="clearAfterSelection"
+					   RecentRepository="@(new InMemoryRecentRepository("IconPicker"))"
+					   AllowCustomValues="allowCustomInputValue"
+					   OnSelectedItemIdChanged="OnSelectedItemIdChanged" />
+</div>
+
+<hr />
+
+<label>Current Value:</label> @inputValue
+
+<div class="form-check">
+	<label class="form-check-label">
+		<input class="form-check-input" type="checkbox" @bind="openOnFocus">
+		Open on focus
+	</label>
+</div>
+<div class="form-check">
+	<label class="form-check-label">
+		<input class="form-check-input" type="checkbox" @bind="highlightMatches">
+		Highlight matches
+	</label>
+</div>
+<div class="form-check">
+	<label class="form-check-label">
+		<input class="form-check-input" type="checkbox" @bind="selectFirstMatch">
+		Select first match
+	</label>
+</div>
+<div class="form-check">
+	<label class="form-check-label">
+		<input class="form-check-input" type="checkbox" @bind="showClearButton">
+		Show clear button
+	</label>
+</div>
+<div class="form-check">
+	<label class="form-check-label">
+		<input class="form-check-input" type="checkbox" @bind="clearOnEscape">
+		Clear on escape
+	</label>
+</div>
+<div class="form-check">
+	<label class="form-check-label">
+		<input class="form-check-input" type="checkbox" @bind="clearAfterSelection">
+		Clear after selection
+	</label>
+</div>
+<div class="form-check">
+	<label class="form-check-label">
+		<input class="form-check-input" type="checkbox" @bind="showOtherMatches">
+		Show other matches
+	</label>
+</div>
+<div class="form-check">
+	<label class="form-check-label">
+		<input class="form-check-input" type="checkbox" @bind="allowCustomInputValue">
+		Allow custom input value
+	</label>
+</div>
+
+<div style="background-color:lightgrey; padding: 15px; border-radius: 10px;">
+	<pre style="margin-bottom: 0;"><code>@System.Text.Json.JsonSerializer.Serialize(selectedItems, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</code></pre>
+</div>
+
+@code {
+	string inputValue = "";
+	bool openOnFocus = true;
+	bool highlightMatches = true;
+	bool selectFirstMatch = true;
+	bool clearOnEscape = true;
+	bool showClearButton = true;
+	bool clearAfterSelection = false;
+	bool showOtherMatches = false;
+	bool allowCustomInputValue = true;
+
+	List<string?> selectedItems = new List<string?>();
+
+	void OnItemSelected(string text)
+	{
+		selectedItems.Add(text);
+		inputValue = text;
+	}
+
+	void OnSelectedItemIdChanged(string id)
+	{
+		Serilog.Log.Information("Selected item Id: {Id}", id);
+	}
+}
+

@@ -16,7 +16,7 @@ namespace ZBlazor
 	/// <summary>
 	/// An autocomplete input with fuzzy matching ability.
 	/// </summary>
-	public partial class QuickAutocomplete<TItem> : ComponentBase
+	public partial class QuickComboBox<TItem> : ComponentBase
 		where TItem : class
 	{
 		#region INJECTED
@@ -111,11 +111,6 @@ namespace ZBlazor
 		/// When true, the first match will be selected by default. Defaults to <c>true</c>;
 		/// </summary>
 		[Parameter] public bool SelectFirstMatch { get; set; } = true;
-
-		/// <summary>
-		/// Denotes the maximum number of items to show at a given time. Defaults to <c>5</c>. Set to <c>0</c> for no limit.
-		/// </summary>
-		[Parameter] public int MaxItemsToShow { get; set; } = 5;
 
 		/// <summary>
 		/// Maximum height for the items container.
@@ -609,7 +604,7 @@ namespace ZBlazor
 		{
 			var result = new List<SearchItem<TItem>>();
 
-			int actualItemsToShow = MaxItemsToShow == 0 ? SearchItems.Count : MaxItemsToShow;
+			int actualItemsToShow = SearchItems.Count;
 
 			if (!HasInputValue)
 			{
@@ -963,12 +958,6 @@ namespace ZBlazor
 				return false;
 			}
 
-			// If MaxItemsToShow has a limit and we are above that, never show
-			if (MaxItemsToShow != 0 && showingIndex >= MaxItemsToShow)
-			{
-				return false;
-			}
-
 			// State is Open + In Limit + Matching, show it
 			if (isMatch)
 			{
@@ -986,30 +975,5 @@ namespace ZBlazor
 		}
 
 		#endregion METHODS
-	}
-
-	/// <summary>
-	/// Global properties for all QuickAutocompletes within the static scope.
-	/// </summary>
-	public static class QuickAutocompleteGlobalProperties
-	{
-		#region GLOBAL PARAMETERS
-
-		/// <summary>
-		/// The class applied to the input element within the QuickAutocomplete component. Setting this on an individual QuickAutocomplete will override this global setting.
-		/// </summary>
-		public static string? Class { get; set; }
-
-		/// <summary>
-		/// The class applied to the containing div element of the QuickAutocomplete component. Setting this on an individual QuickAutocomplete will override this global setting.
-		/// </summary>
-		public static string? ContainerClass { get; set; }
-
-		/// <summary>
-		/// The class applied to each item in the items list of the QuickAutocomplete component. Setting this on an individual QuickAutocomplete will override this global setting.
-		/// </summary>
-		public static string? ItemClass { get; set; }
-
-		#endregion
 	}
 }

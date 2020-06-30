@@ -1,0 +1,132 @@
+﻿@namespace ZBlazor
+@typeparam TItem
+<div class="@($"zb-quick-autocomplete-container {ContainerClass ?? QuickAutocompleteGlobalProperties.ContainerClass}")"
+	 style="@($"width:{Width};")">
+	<span class="zb-combo-box-wrapper">
+		<span class="zb-combo-box-input-wrapper">
+			<input type="@InputType"
+				   value="@InputValue"
+				   class="@(Class ?? QuickAutocompleteGlobalProperties.Class)"
+				   @attributes="InputAttributes"
+				   @oninput="OnValueChange"
+				   @onkeydown="OnKeyDown"
+				   @onfocus="OnFocus"
+				   @onblur="OnBlur"
+				   @onmousedown="OnMouseDown"
+				   @onmouseup="OnMouseUp" />
+		</span>
+		@if (InputAccessory != null)
+		{
+			@InputAccessory
+		}
+		@if (ShowClearButton)
+		{
+			<span class="zb-quick-autocomplete-clear-button"
+				  title="Clear value"
+				  style="@($"{(HasInputValue ? "" : "display: none;")}")"
+				  @onclick="@(async () => await ClearInputValue())"
+				  @onclick:stopPropagation="true"
+				  @onclick:preventDefault="true"
+				  @onmousedown:preventDefault="true"
+				  @onmousedown:stopPropagation="true"
+				  @onmouseup:preventDefault="true"
+				  @onmouseup:stopPropagation="true">
+				<span class="zb-quick-autocomplete-clear-symbol">&times;</span>
+			</span>
+		}
+	<span class="zb-combo-box-dropdown-button" @onclick="@(() => { isOpen = !isOpen; isFocused = true; })">
+		&#9660;
+	</span>
+	</span>
+	<div id="@_itemContainerId"
+		 class="@($"zb-quick-autocomplete-items {(isOpen ? " zb-quick-autocomplete-items-open" :"")}")"
+		 style="@($"{(MaxItemsHeight != null ? $"max-height:{MaxItemsHeight}" : "")}")"
+		 @onmousedown="OnMouseDown"
+		 @onmouseup="OnMouseUp">
+		<div class="zb-quick-autocomplete-items-scrollable">
+			@foreach (var item in SearchItems.Where(i => i.IsSelected))
+			{
+				item.IsSelected = false;
+			}
+
+			@foreach (var item in SearchItems.Where(i => i.ShouldItemShow))
+			{
+				item.ShouldItemShow = false;
+			}
+
+			@if (HasInputValue && IsLoading)
+			{
+				<div class="zb-quick-autocomplete-item"
+					 @onclick:preventDefault="true"
+					 @onclick:stopPropagation="true"
+					 @onmousedown:stopPropagation="true"
+					 @onmousedown:preventDefault="true"
+					 @onclick="@(() => isOpen = false)">
+					@if (LoadingView != null)
+					{
+						@LoadingView
+					}
+					else
+					{
+						<span>Loading...</span>
+					}
+				</div>
+			}
+			else if (!IsFiltering && HasInputValue && SearchItems.All(i => !i.IsMatch))
+			{
+				if (NoResultsView != null)
+				{
+					<div class="zb-quick-autocomplete-item"
+						 @onclick:preventDefault="true"
+						 @onclick:stopPropagation="true"
+						 @onmousedown:stopPropagation="true"
+						 @onmousedown:preventDefault="true"
+						 @onclick="@(() => isOpen = false)">
+						@NoResultsView
+					</div>
+
+				}
+			}
+			else if (!HasInputValue && NoInputView != null)
+			{
+				<div class="zb-quick-autocomplete-item"
+					 @onclick:preventDefault="true"
+					 @onclick:stopPropagation="true"
+					 @onmousedown:preventDefault="true"
+					 @onmousedown:stopPropagation="true"
+					 @onclick="@(() => isOpen = false)">
+					@NoInputView
+				</div>
+			}
+			else
+			{
+				int showingIndex = 0;
+
+				foreach (var item in GetOrderedSearchItems())
+				{
+					{
+						item.IsSelected = showingIndex == selectedItemIndex;
+					}
+
+					<div @key="item.Key"
+						 id="@item.Id"
+						 class="@($"zb-quick-autocomplete-item {(showingIndex == selectedItemIndex ? "zb-quick-autocomplete-active" : "")}  {(item.LastHit != null ? "zb-quick-autocomplete-item-recent" : "")} {ItemClass ?? QuickAutocompleteGlobalProperties.ItemClass}")"
+						 @onclick="@(async () => await OnSelected(item))">
+						@if (ItemTemplate != null)
+						{
+							@ItemTemplate(item)
+						}
+						else
+						{
+							@item.GetDisplayText(HighlightMatches, ShowOtherMatches)
+						}
+					</div>
+
+					{
+						showingIndex += 1;
+					}
+				}
+			}
+		</div>
+	</div>
+</div>
